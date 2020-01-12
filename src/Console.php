@@ -12,7 +12,7 @@ use Nette\Application\UI\Presenter;
 use Nette\DI\Container;
 use Tracy\Debugger;
 
-class Console
+final class Console
 {
 
 	/**
