@@ -5,25 +5,11 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Baraja\PackageManager\Composer\AssetsFromPackageTask;
-use Baraja\PackageManager\Composer\ClearCacheTask;
-use Baraja\PackageManager\Composer\ComposerJsonTask;
-use Baraja\PackageManager\Composer\ConfigLocalNeonTask;
 use Baraja\PackageManager\Composer\ITask;
 use Baraja\PackageManager\Exception\TaskException;
 
 final class InteractiveComposer
 {
-
-	/**
-	 * @var string[]
-	 */
-	private static $tasks = [
-		ConfigLocalNeonTask::class,
-		AssetsFromPackageTask::class,
-		ComposerJsonTask::class,
-		ClearCacheTask::class,
-	];
 
 	/**
 	 * @var PackageRegistrator
@@ -35,37 +21,27 @@ final class InteractiveComposer
 		$this->packageRegistrator = $packageRegistrator;
 	}
 
-	/**
-	 * Class must implement ITask.
-	 *
-	 * @param string $taskClass
-	 */
-	public static function addTask(string $taskClass): void
-	{
-		self::$tasks[] = $taskClass;
-	}
-
 	public function run(): void
 	{
 		$errorTasks = [];
 
-		foreach (self::$tasks as $task) {
+		foreach ($this->getTasks() as $taskClass) {
 			echo "\n" . str_repeat('-', 100) . "\n";
 
-			/** @var ITask $taskInstance */
-			$taskInstance = new $task($this->packageRegistrator);
+			/** @var ITask $task */
+			$task = new $taskClass($this->packageRegistrator);
 
-			echo "\e[0;32;40m" . '🍏 Task: ' . $taskInstance->getName() . "\e[0m\n";
+			echo "\e[0;32;40m" . '🍏 Task: ' . $task->getName() . "\e[0m\n";
 
 			try {
-				if ($taskInstance->run() === true) {
+				if ($task->run() === true) {
 					echo "\n\n" . '👍 ' . "\e[1;33;40m" . 'Task was successful. 👍' . "\e[0m";
 				} else {
-					$errorTasks[] = $task;
+					$errorTasks[] = $taskClass;
 					echo "\n\n" . 'Task error.';
 				}
-			} catch (TaskException $e) {
-				$errorTasks[] = $task;
+			} catch (TaskException|\RuntimeException $e) {
+				$errorTasks[] = $taskClass;
 				echo "\n\n" . 'Task error (' . $e->getMessage() . ').';
 			}
 		}
@@ -83,6 +59,28 @@ final class InteractiveComposer
 		}
 
 		echo "\n\n\n";
+	}
+
+	/**
+	 * @return string[]
+	 */
+	private function getTasks(): array
+	{
+		$return = [];
+
+		foreach (ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot()) as $class => $path) {
+			if (preg_match('/^[A-Z0-9].*Task$/', $class)) {
+				try {
+					$ref = new \ReflectionClass($class);
+					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(ITask::class) === true) {
+						$return[$class] = $path;
+					}
+				} catch (\ReflectionException $e) {
+				}
+			}
+		}
+
+		return array_keys($return);
 	}
 
 }
