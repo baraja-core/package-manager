@@ -67,20 +67,31 @@ final class InteractiveComposer
 	private function getTasks(): array
 	{
 		$return = [];
+		echo 'Searching classes...';
 
 		foreach (ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot()) as $class => $path) {
 			if (preg_match('/^[A-Z0-9].*Task$/', $class)) {
 				try {
 					$ref = new \ReflectionClass($class);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(ITask::class) === true) {
-						$return[$class] = $path;
+						$return[$class] = [
+							$class,
+							($doc = $ref->getDocComment()) !== false && preg_match('/Priority:\s*(\d+)/', $doc, $docParser) ? (int) $docParser[1] : 10,
+						];
 					}
 				} catch (\ReflectionException $e) {
 				}
 			}
 		}
+		echo "\n";
 
-		return array_keys($return);
+		usort($return, static function (array $a, array $b): int {
+			return $a[1] < $b[1] ? 1 : -1;
+		});
+
+		return array_map(static function (array $haystack): string {
+			return $haystack[0];
+		}, $return);
 	}
 
 }
