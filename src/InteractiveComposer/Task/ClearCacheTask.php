@@ -8,7 +8,7 @@ namespace Baraja\PackageManager\Composer;
 use Baraja\PackageManager\Helpers;
 use Nette\Utils\FileSystem;
 
-class ClearCacheTask extends BaseTask
+final class ClearCacheTask extends BaseTask
 {
 
 	/**
@@ -25,10 +25,11 @@ class ClearCacheTask extends BaseTask
 			opcache_reset();
 		}
 
-		$tempPath = \dirname(__DIR__, 6) . '/temp';
-		$cachePath = $tempPath . '/cache';
+		$cachePath = ($tempPath = \dirname(__DIR__, 6) . '/temp') . '/cache';
 
-		unlink($tempPath . '/_packageDescriptor/PackageDescriptorEntity.php');
+		if (is_file($unlinkPath = $tempPath . '/_packageDescriptor/PackageDescriptorEntity.php') === true) {
+			unlink($unlinkPath);
+		}
 
 		echo 'Path: ' . $cachePath;
 
