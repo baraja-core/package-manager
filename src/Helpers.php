@@ -134,8 +134,6 @@ final class Helpers
 			throw new \RuntimeException('Problem with opening "php://stdin".');
 		}
 
-		echo "\n";
-
 		$input = ($input = trim((string) fgets($fOpen))) === '' ? null : $input;
 
 		if ($possibilities !== [] && $possibilities !== null) {
