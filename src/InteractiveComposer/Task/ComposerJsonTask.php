@@ -12,6 +12,9 @@ use Nette\Utils\Json;
 use Nette\Utils\JsonException;
 use Nette\Utils\Strings;
 
+/**
+ * Priority: 300
+ */
 final class ComposerJsonTask extends BaseTask
 {
 
