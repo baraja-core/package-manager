@@ -67,6 +67,10 @@ Default task list (but you can add more):
 - Project `composer.json` normalizer
 - Clear cache
 
+If you want add your own task, simply create class with name `*Task` implementing `ITask` interface. Package manager will find your class automatically in your project or shared package.
+
+Order of tasks can be defined by `Priority: xxx` doc comment anotation.
+
 Default project assert manager
 ------------------------------
 
