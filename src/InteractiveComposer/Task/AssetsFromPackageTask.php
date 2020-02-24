@@ -8,6 +8,9 @@ namespace Baraja\PackageManager\Composer;
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\TaskException;
 
+/**
+ * Priority: 200
+ */
 final class AssetsFromPackageTask extends BaseTask
 {
 
