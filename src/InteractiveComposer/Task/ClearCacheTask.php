@@ -8,6 +8,9 @@ namespace Baraja\PackageManager\Composer;
 use Baraja\PackageManager\Helpers;
 use Nette\Utils\FileSystem;
 
+/**
+ * Priority: 100
+ */
 final class ClearCacheTask extends BaseTask
 {
 
