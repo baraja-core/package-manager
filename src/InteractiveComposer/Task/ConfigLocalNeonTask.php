@@ -8,6 +8,9 @@ namespace Baraja\PackageManager\Composer;
 use Baraja\PackageManager\Helpers;
 use Nette\Neon\Neon;
 
+/**
+ * Priority: 1000
+ */
 final class ConfigLocalNeonTask extends BaseTask
 {
 
@@ -71,12 +74,12 @@ final class ConfigLocalNeonTask extends BaseTask
 			$mySqlCredentials['password']
 		);
 
-		$databases = $connection->query('SHOW DATABASES')->fetchAll();
 		$databaseList = [];
 		$databaseCounter = 1;
 		$usedDatabase = null;
+		echo "\n\n";
 
-		foreach ($databases as $database) {
+		foreach ($connection->query('SHOW DATABASES')->fetchAll() as $database) {
 			echo $databaseCounter . ': ' . $database[0] . "\n";
 			$databaseList[$databaseCounter] = $database[0];
 			$databaseCounter++;
@@ -205,6 +208,7 @@ final class ConfigLocalNeonTask extends BaseTask
 				echo 'it is important to always set a passphrase that must not be an empty string.' . "\n";
 				echo 'If you are using a database without a password, set the password first and then install again.';
 			}
+			echo "\n\n";
 
 			try {
 				new \PDO('mysql:host=' . $connectionServer, $connectionUser, $connectionPassword);
