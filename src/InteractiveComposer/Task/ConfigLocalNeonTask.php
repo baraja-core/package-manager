@@ -77,16 +77,24 @@ final class ConfigLocalNeonTask extends BaseTask
 		$databaseList = [];
 		$databaseCounter = 1;
 		$usedDatabase = null;
+		$candidateDatabases = [];
 		echo "\n\n";
 
 		foreach ($connection->query('SHOW DATABASES')->fetchAll() as $database) {
 			echo $databaseCounter . ': ' . $database[0] . "\n";
 			$databaseList[$databaseCounter] = $database[0];
 			$databaseCounter++;
+			if ($database[0] !== 'information_schema') {
+				$candidateDatabases[] = $database[0];
+			}
+		}
+
+		if (\count($candidateDatabases) === 1) {
+			$usedDatabase = $candidateDatabases[0];
 		}
 
 		while (true) {
-			if (preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')) {
+			if ($usedDatabase === null && preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')) {
 				if (isset($databaseList[$usedDatabaseKey = (int) $usedDatabase])) {
 					$usedDatabase = $databaseList[$usedDatabaseKey];
 					break;
