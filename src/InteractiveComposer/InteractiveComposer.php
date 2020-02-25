@@ -23,8 +23,6 @@ final class InteractiveComposer
 
 	public function run(): void
 	{
-		$errorTasks = [];
-
 		foreach ($this->getTasks() as $taskClass) {
 			echo "\n" . str_repeat('-', 100) . "\n";
 
@@ -37,28 +35,20 @@ final class InteractiveComposer
 				if ($task->run() === true) {
 					echo "\n\n" . '👍 ' . "\e[1;33;40m" . 'Task was successful. 👍' . "\e[0m";
 				} else {
-					$errorTasks[] = $taskClass;
-					echo "\n\n" . 'Task error.';
+					echo "\n\n";
+					Helpers::terminalRenderError('Task "' . $taskClass . '" failed!');
+					echo "\n\n";
+					die;
 				}
 			} catch (TaskException|\RuntimeException $e) {
-				$errorTasks[] = $taskClass;
-				echo "\n\n" . 'Task error (' . $e->getMessage() . ').';
+				echo "\n\n";
+				Helpers::terminalRenderError('Task "' . $taskClass . '" failed!' . "\n\n" . $e->getMessage());
+				echo "\n\n";
+				die;
 			}
 		}
 
-		echo "\n" . str_repeat('-', 100) . "\n\n\n";
-
-		if (\count($errorTasks) > 0) {
-			echo 'Error tasks:' . "\n\n";
-
-			foreach ($errorTasks as $errorTask) {
-				echo '- ' . $errorTask . "\n";
-			}
-		} else {
-			echo 'All tasks was OK.';
-		}
-
-		echo "\n\n\n";
+		echo "\n" . str_repeat('-', 100) . "\n\n\n" . 'All tasks was OK.' . "\n\n\n";
 	}
 
 	/**
