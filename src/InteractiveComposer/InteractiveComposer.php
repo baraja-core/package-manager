@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
+use Baraja\PackageManager\Composer\CompanyIdentity;
 use Baraja\PackageManager\Composer\ITask;
 use Baraja\PackageManager\Exception\TaskException;
 
@@ -57,7 +58,7 @@ final class InteractiveComposer
 	private function getTasks(): array
 	{
 		$return = [];
-		echo 'Searching classes...';
+		echo 'Indexing classes...' . "\n";
 
 		foreach (ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot()) as $class => $path) {
 			if (preg_match('/^[A-Z0-9].*Task$/', $class)) {
@@ -68,6 +69,19 @@ final class InteractiveComposer
 							$class,
 							($doc = $ref->getDocComment()) !== false && preg_match('/Priority:\s*(\d+)/', $doc, $docParser) ? (int) $docParser[1] : 10,
 						];
+					}
+				} catch (\ReflectionException $e) {
+				}
+			}
+
+			if (preg_match('/^[A-Z0-9].*Identity/', $class)) {
+				try {
+					$ref = new \ReflectionClass($class);
+					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(CompanyIdentity::class) === true) {
+						/** @var CompanyIdentity $identity */
+						$identity = $ref->newInstance();
+
+						echo $identity->getLogo() . "\n" . str_repeat('-', 100) . "\n";
 					}
 				} catch (\ReflectionException $e) {
 				}
