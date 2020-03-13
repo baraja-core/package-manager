@@ -121,9 +121,7 @@ class PackageDescriptorEntity
 			}
 
 			if ($package['composer'] === null) {
-				throw new PackageDescriptorCompileException(
-					'Composer.json of "' . $package['name'] . '" does not exist or is broken.'
-				);
+				PackageDescriptorCompileException::composerJsonIsBroken($package['name']);
 			}
 
 			$return[] = new Package(
