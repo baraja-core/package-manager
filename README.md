@@ -18,7 +18,7 @@ And add to your project `composer.json` this `scripts` section:
 
 ```json
 "scripts": {
-	"post-autoload-dump": "Baraja\\PackageManager\\PackageRegistrator::composerPostAutoloadDump"
+   "post-autoload-dump": "Baraja\\PackageManager\\PackageRegistrator::composerPostAutoloadDump"
 }
 ```
 
@@ -33,8 +33,8 @@ In `Booting` class add create new instance of `PackageRegistrator`:
 
 ```php
 $packageRegistrator = new PackageRegistrator(
-	__DIR__ . '/../',    // root path
-	__DIR__ . '/../temp' // temp path
+   __DIR__ . '/../',    // root path
+   __DIR__ . '/../temp' // temp path
 );
 ```
 
@@ -87,10 +87,10 @@ If you want create file `jquery.js` to `/www/js` for example, simply define pack
 
 ```
 /src
-	- files...
+   - files...
 /install
-	/www
-		/js
-			- jquery.js
+   /www
+      /js
+         - jquery.js
 - composer.json
 ```
