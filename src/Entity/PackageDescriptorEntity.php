@@ -14,35 +14,24 @@ use Baraja\PackageManager\Exception\PackageDescriptorException;
 class PackageDescriptorEntity
 {
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	protected $__close = false;
 
-	/**
-	 * @var \stdClass[]
-	 */
+	/** @var \stdClass[] */
 	protected $composer;
 
-	/**
-	 * @var mixed[]
-	 */
+	/** @var mixed[] */
 	protected $packagest = [];
 
-	/**
-	 * @var string[]
-	 */
+	/** @var string[] */
 	protected $customRouters = [];
 
-	/**
-	 * @var string[]
-	 */
+	/** @var string[] */
 	protected $afterInstallScripts = [];
 
-	/**
-	 * @var string[]
-	 */
+	/** @var string[] */
 	private $__customPackagesNamePatterns;
+
 
 	/**
 	 * @param string[] $customPackagesNamePatterns
@@ -52,6 +41,7 @@ class PackageDescriptorEntity
 		$this->__customPackagesNamePatterns = $customPackagesNamePatterns;
 	}
 
+
 	/**
 	 * @return bool
 	 */
@@ -60,10 +50,12 @@ class PackageDescriptorEntity
 		return $this->__close;
 	}
 
+
 	public function setClose(): void
 	{
 		$this->__close = true;
 	}
+
 
 	/**
 	 * @throws PackageDescriptorException
@@ -78,6 +70,7 @@ class PackageDescriptorEntity
 		}
 	}
 
+
 	/**
 	 * @return \stdClass[]
 	 */
@@ -85,6 +78,7 @@ class PackageDescriptorEntity
 	{
 		return $this->composer;
 	}
+
 
 	/**
 	 * @param \stdClass[] $composer
@@ -95,6 +89,7 @@ class PackageDescriptorEntity
 		$this->checkIfClose();
 		$this->composer = $composer;
 	}
+
 
 	/**
 	 * @param bool $customPackagesOnly
@@ -136,6 +131,7 @@ class PackageDescriptorEntity
 		return $return;
 	}
 
+
 	/**
 	 * @param string[] $packagest
 	 * @throws PackageDescriptorException
@@ -162,6 +158,7 @@ class PackageDescriptorEntity
 		$this->packagest = $return;
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -169,6 +166,7 @@ class PackageDescriptorEntity
 	{
 		return date('Y-m-d H:i:s');
 	}
+
 
 	/**
 	 * @return int
@@ -178,6 +176,7 @@ class PackageDescriptorEntity
 		return time();
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -186,6 +185,7 @@ class PackageDescriptorEntity
 		return md5(time());
 	}
 
+
 	/**
 	 * @return string[]
 	 */
@@ -193,6 +193,7 @@ class PackageDescriptorEntity
 	{
 		return $this->customRouters;
 	}
+
 
 	/**
 	 * @param string[] $customRouters
@@ -204,6 +205,7 @@ class PackageDescriptorEntity
 		$this->customRouters = $customRouters;
 	}
 
+
 	/**
 	 * @return string[]
 	 */
@@ -211,6 +213,7 @@ class PackageDescriptorEntity
 	{
 		return $this->afterInstallScripts;
 	}
+
 
 	/**
 	 * @param string[] $afterInstallScript
@@ -221,6 +224,7 @@ class PackageDescriptorEntity
 		$this->checkIfClose();
 		$this->afterInstallScripts = $afterInstallScript;
 	}
+
 
 	/**
 	 * @return string[]
@@ -234,5 +238,4 @@ class PackageDescriptorEntity
 				: []
 		);
 	}
-
 }

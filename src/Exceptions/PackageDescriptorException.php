@@ -17,6 +17,7 @@ class PackageDescriptorException extends \Exception
 		throw new self('Can not create temp dir on path "' . $path . '"' . "\n" . error_get_last()['message']);
 	}
 
+
 	/**
 	 * @param string $path
 	 * @throws PackageDescriptorException
@@ -25,6 +26,7 @@ class PackageDescriptorException extends \Exception
 	{
 		throw new self('Can not create temp file on path "' . $path . '"' . "\n" . error_get_last()['message']);
 	}
+
 
 	/**
 	 * @param string $path
@@ -37,6 +39,7 @@ class PackageDescriptorException extends \Exception
 			. "\n" . error_get_last()['message']
 		);
 	}
+
 
 	/**
 	 * @param string $path

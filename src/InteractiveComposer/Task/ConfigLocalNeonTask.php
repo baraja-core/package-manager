@@ -14,9 +14,7 @@ use Nette\Neon\Neon;
 final class ConfigLocalNeonTask extends BaseTask
 {
 
-	/**
-	 * @var string[][]
-	 */
+	/** @var string[][] */
 	private static $commonCredentials = [
 		'localhost' => [
 			['root', 'root'],
@@ -29,6 +27,7 @@ final class ConfigLocalNeonTask extends BaseTask
 			['root', ''],
 		],
 	];
+
 
 	/**
 	 * @return bool
@@ -55,6 +54,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		return true;
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -62,6 +62,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	{
 		return 'Local.neon checker';
 	}
+
 
 	/**
 	 * @return mixed[]
@@ -166,6 +167,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		];
 	}
 
+
 	private function mySqlConnect(): array
 	{
 		$dbh = null;
@@ -236,6 +238,7 @@ final class ConfigLocalNeonTask extends BaseTask
 
 		return [];
 	}
+
 
 	/**
 	 * @param string $name

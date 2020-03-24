@@ -16,6 +16,7 @@ interface ITask
 	 */
 	public function __construct(PackageRegistrator $packageRegistrator);
 
+
 	/**
 	 * Return true if task was ok.
 	 *
@@ -23,6 +24,7 @@ interface ITask
 	 * @throws TaskException
 	 */
 	public function run(): bool;
+
 
 	/**
 	 * Return name of task.

@@ -13,30 +13,21 @@ final class Package
 
 	use SmartObject;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $name;
 
-	/**
-	 * @var null|string
-	 */
+	/** @var string|null */
 	private $version;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $dependency;
 
-	/**
-	 * @var string[]
-	 */
+	/** @var string[] */
 	private $config;
 
-	/**
-	 * @var mixed[]
-	 */
+	/** @var mixed[] */
 	private $composer;
+
 
 	/**
 	 * @param string $name
@@ -54,6 +45,7 @@ final class Package
 		$this->composer = $composer;
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -61,6 +53,7 @@ final class Package
 	{
 		return $this->name;
 	}
+
 
 	/**
 	 * @return null|string
@@ -70,6 +63,7 @@ final class Package
 		return $this->version;
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -77,6 +71,7 @@ final class Package
 	{
 		return $this->dependency;
 	}
+
 
 	/**
 	 * @return string[]
@@ -86,6 +81,7 @@ final class Package
 		return $this->config;
 	}
 
+
 	/**
 	 * @return mixed[]
 	 */
@@ -93,6 +89,7 @@ final class Package
 	{
 		return $this->composer;
 	}
+
 
 	/**
 	 * @deprecated please use native implementation or DIC.
@@ -111,5 +108,4 @@ final class Package
 
 		return [];
 	}
-
 }

@@ -17,55 +17,38 @@ use Tracy\Debugger;
 class PackageRegistrator
 {
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	private static $created = false;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private static $projectRoot;
 
-	/**
-	 * @var string[]|null
-	 */
+	/** @var string[]|null */
 	private static $parameters;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private static $configPath;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private static $configPackagePath;
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private static $configLocalPath;
 
-	/**
-	 * @var PackageDescriptorEntity
-	 */
+	/** @var PackageDescriptorEntity */
 	private static $packageDescriptorEntity;
 
-	/**
-	 * @var bool
-	 */
+	/** @var bool */
 	private static $runAfterScripts = false;
 
-	/**
-	 * @var string[]
-	 */
+	/** @var string[] */
 	private static $neonNoUseParams = [
 		'includes' => true,
 		'application' => true,
 		'routers' => true,
 		'afterInstall' => true,
 	];
+
 
 	/**
 	 * @param string|null $projectRoot
@@ -105,6 +88,7 @@ class PackageRegistrator
 		}
 	}
 
+
 	public static function composerPostAutoloadDump(): void
 	{
 		try {
@@ -117,6 +101,7 @@ class PackageRegistrator
 		}
 	}
 
+
 	/**
 	 * @return PackageDescriptorEntity
 	 */
@@ -124,6 +109,7 @@ class PackageRegistrator
 	{
 		return self::$packageDescriptorEntity;
 	}
+
 
 	/**
 	 * @return string[]
@@ -136,6 +122,7 @@ class PackageRegistrator
 
 		return self::$parameters ?? [];
 	}
+
 
 	/**
 	 * @return string[]
@@ -152,6 +139,7 @@ class PackageRegistrator
 		return $return;
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -160,6 +148,7 @@ class PackageRegistrator
 		return self::$projectRoot;
 	}
 
+
 	/**
 	 * @return PackageDescriptorEntity
 	 */
@@ -167,6 +156,7 @@ class PackageRegistrator
 	{
 		return self::$packageDescriptorEntity;
 	}
+
 
 	/**
 	 * @return string
@@ -180,6 +170,7 @@ class PackageRegistrator
 
 		return (string) file_get_contents(self::$configPackagePath);
 	}
+
 
 	/**
 	 * @param string $packageName
@@ -196,6 +187,7 @@ class PackageRegistrator
 
 		return false;
 	}
+
 
 	/**
 	 * @param Configurator $configurator
@@ -221,6 +213,7 @@ class PackageRegistrator
 			}
 		}
 	}
+
 
 	/**
 	 * @param PackageDescriptorEntity $packageDescriptorEntity
@@ -335,6 +328,7 @@ class PackageRegistrator
 		}
 	}
 
+
 	/**
 	 * @param PackageDescriptorEntity $packageDescriptorEntity
 	 * @return bool
@@ -352,6 +346,7 @@ class PackageRegistrator
 		return false;
 	}
 
+
 	/**
 	 * Return hash of installed.json, if composer does not used, return empty string
 	 *
@@ -362,7 +357,7 @@ class PackageRegistrator
 		static $cache;
 
 		if ($cache === null) {
-			$cache = (@md5_file(self::$projectRoot . '/vendor/composer/installed.json')) ? : md5((string) time());
+			$cache = (@md5_file(self::$projectRoot . '/vendor/composer/installed.json')) ?: md5((string) time());
 		}
 
 		return $cache;

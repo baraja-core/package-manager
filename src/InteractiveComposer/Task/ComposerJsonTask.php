@@ -20,6 +20,7 @@ final class ComposerJsonTask extends BaseTask
 
 	private const PRIORITY_PREFIX = 'baraja-';
 
+
 	/**
 	 * @return bool
 	 * @throws JsonException
@@ -66,6 +67,7 @@ final class ComposerJsonTask extends BaseTask
 		return true;
 	}
 
+
 	/**
 	 * @return string
 	 */
@@ -73,6 +75,7 @@ final class ComposerJsonTask extends BaseTask
 	{
 		return 'Composer.json fixer';
 	}
+
 
 	/**
 	 * @return string[]
