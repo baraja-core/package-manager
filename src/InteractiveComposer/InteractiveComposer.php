@@ -41,7 +41,7 @@ final class InteractiveComposer
 					echo "\n\n";
 					die;
 				}
-			} catch (TaskException|\RuntimeException $e) {
+			} catch (TaskException | \RuntimeException $e) {
 				echo "\n\n";
 				Helpers::terminalRenderError('Task "' . $taskClass . '" failed!' . "\n\n" . $e->getMessage());
 				echo "\n\n";
@@ -98,5 +98,4 @@ final class InteractiveComposer
 			return $haystack[0];
 		}, $return);
 	}
-
 }

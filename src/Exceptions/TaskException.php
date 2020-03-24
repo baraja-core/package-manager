@@ -47,5 +47,4 @@ final class TaskException extends PackageDescriptorException
 			. ($errorMessage !== null ? ': ' . $errorMessage : '')
 		);
 	}
-
 }

@@ -207,5 +207,4 @@ final class Helpers
 	{
 		return '      ' . $line . (($repeat = 88 - self::length($line)) > 0 ? str_repeat(' ', $repeat) : '') . '      ' . "\n";
 	}
-
 }

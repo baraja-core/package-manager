@@ -30,5 +30,4 @@ abstract class BaseTask implements ITask
 	{
 		return Helpers::terminalInteractiveAsk($question, $possibilities);
 	}
-
 }

@@ -26,5 +26,4 @@ final class PackageDescriptorCompileException extends PackageDescriptorException
 	{
 		throw new self('File "composer.json" in package "' . $packageName . '" does not exist.');
 	}
-
 }

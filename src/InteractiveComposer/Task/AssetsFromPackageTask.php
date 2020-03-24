@@ -168,5 +168,4 @@ final class AssetsFromPackageTask extends BaseTask
 
 		return $copy;
 	}
-
 }
