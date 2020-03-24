@@ -212,7 +212,7 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 		}
 
-		while (true) {
+		for ($ttl = 10; $ttl > 0; $ttl--) {
 			if (($connectionServer = $this->ask('Server (hostname) [empty for "127.0.0.1"]:')) === null) {
 				echo 'Server "127.0.0.1" has been used.';
 				$connectionServer = '127.0.0.1';

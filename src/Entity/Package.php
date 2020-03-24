@@ -21,7 +21,7 @@ final class Package
 	/** @var string */
 	private $dependency;
 
-	/** @var string[] */
+	/** @var string[][]|mixed[][][] */
 	private $config;
 
 	/** @var mixed[] */
@@ -32,7 +32,7 @@ final class Package
 	 * @param string $name
 	 * @param string|null $version
 	 * @param string $dependency
-	 * @param string[] $config
+	 * @param string[][]|mixed[][][] $config
 	 * @param mixed[] $composer
 	 */
 	public function __construct(string $name, ?string $version, string $dependency, array $config, array $composer)
@@ -73,7 +73,7 @@ final class Package
 
 
 	/**
-	 * @return string[][]|mixed[][][]
+	 * @return string[][]|bool[][]|mixed[][][]
 	 */
 	public function getConfig(): array
 	{
