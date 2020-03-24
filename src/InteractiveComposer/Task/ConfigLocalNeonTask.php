@@ -18,7 +18,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	 * This credentials will be automatically used for test connection.
 	 * If connection works it will be used for final Neon configuration.
 	 *
-	 * @var string[][]
+	 * @var string[][][]
 	 */
 	private static $commonCredentials = [
 		'localhost' => [
@@ -173,6 +173,11 @@ final class ConfigLocalNeonTask extends BaseTask
 	}
 
 
+	/**
+	 * Get mysql connection credentials and return fully works credentials or in case of error empty array.
+	 *
+	 * @return string[]
+	 */
 	private function mySqlConnect(): array
 	{
 		$dbh = null;

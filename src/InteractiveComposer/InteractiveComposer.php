@@ -61,13 +61,17 @@ final class InteractiveComposer
 		$return = [];
 		echo 'Indexing classes...' . "\n";
 
-		foreach (ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot()) as $class => $path) {
-			if (preg_match('/^[A-Z0-9].*Task$/', $class)) {
+		foreach (array_keys(ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot())) as $className) {
+			if (\is_string($className) === false) {
+				throw new \RuntimeException('Class name must be type of string, but type "' . \gettype($className) . '" given.');
+			}
+
+			if (preg_match('/^[A-Z0-9].*Task$/', $className)) {
 				try {
-					$ref = new \ReflectionClass($class);
+					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(ITask::class) === true) {
-						$return[$class] = [
-							$class,
+						$return[$className] = [
+							$className,
 							($doc = $ref->getDocComment()) !== false && preg_match('/Priority:\s*(\d+)/', $doc, $docParser) ? (int) $docParser[1] : 10,
 						];
 					}
@@ -75,9 +79,9 @@ final class InteractiveComposer
 				}
 			}
 
-			if (preg_match('/^[A-Z0-9].*Identity/', $class)) {
+			if (preg_match('/^[A-Z0-9].*Identity/', $className)) {
 				try {
-					$ref = new \ReflectionClass($class);
+					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(CompanyIdentity::class) === true) {
 						/** @var CompanyIdentity $identity */
 						$identity = $ref->newInstance();

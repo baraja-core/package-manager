@@ -73,7 +73,7 @@ final class Package
 
 
 	/**
-	 * @return string[]
+	 * @return string[][]|mixed[][][]
 	 */
 	public function getConfig(): array
 	{
@@ -93,11 +93,11 @@ final class Package
 	/**
 	 * @deprecated please use native implementation or DIC.
 	 * @param string $key
-	 * @return string[][]
+	 * @return mixed[]
 	 */
 	public function getConfigProperty(string $key): array
 	{
-		if (isset($this->getConfig()[$key])) {
+		if (isset($this->getConfig()[$key]) === true) {
 			if ($this->getConfig()[$key]['rewrite'] === true) {
 				return $this->getConfig()[$key]['data'];
 			}

@@ -9,6 +9,7 @@ use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 
 /**
+ * @internal
  * @property string[] $customPackagesNamePatterns
  */
 class PackageDescriptorEntity
@@ -133,7 +134,7 @@ class PackageDescriptorEntity
 
 
 	/**
-	 * @param string[] $packagest
+	 * @param mixed[] $packagest
 	 * @throws PackageDescriptorException
 	 */
 	public function setPackages(array $packagest): void
@@ -143,15 +144,20 @@ class PackageDescriptorEntity
 		$return = [];
 
 		foreach ($packagest as $package) {
+			$composer = [];
+			if (isset($package['composer']) === true) {
+				$composer = [
+					'name' => $package['composer']['name'] ?? null,
+					'description' => $package['composer']['description'] ?? null,
+				];
+			}
+
 			$return[] = [
 				'name' => $package['name'] ?? null,
 				'version' => $package['version'] ?? null,
 				'dependency' => $package['dependency'] ?? null,
 				'config' => $package['config'] ?? null,
-				'composer' => [
-					'name' => $package['composer']['name'] ?? null,
-					'description' => $package['composer']['description'] ?? null,
-				],
+				'composer' => $composer,
 			];
 		}
 
@@ -182,7 +188,7 @@ class PackageDescriptorEntity
 	 */
 	public function getComposerHash(): string
 	{
-		return md5(time());
+		return md5((string) time());
 	}
 
 

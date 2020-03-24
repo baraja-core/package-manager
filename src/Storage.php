@@ -40,9 +40,11 @@ final class Storage
 		if (trim($this->getPath()) !== '' && filesize($this->getPath()) > 1) {
 			require_once $this->getPath();
 
-			$cache = new \PackageDescriptorEntity();
+			if (\class_exists(\PackageDescriptorEntity::class) === false) {
+				PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
+			}
 
-			return $cache;
+			return new \PackageDescriptorEntity();
 		}
 
 		PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
@@ -161,12 +163,15 @@ final class Storage
 		static $cache;
 
 		if ($cache === null) {
+			$dir = $this->basePath . '/cache/baraja/packageDescriptor';
+			$cache = $dir . '/PackageDescriptorEntity.php';
+
 			try {
-				if (!is_dir($dir = $this->basePath . '/cache/baraja/packageDescriptor') && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
+				if (is_dir($dir) === false && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
 					PackageDescriptorException::canNotCreateTempDir($dir);
 				}
 
-				if (!is_file($cache = $dir . '/PackageDescriptorEntity.php') && !@file_put_contents($cache, '') && !is_file($cache)) {
+				if (is_file($cache) === false && !@file_put_contents($cache, '') && !is_file($cache)) {
 					PackageDescriptorException::canNotCreateTempFile($cache);
 				}
 			} catch (PackageDescriptorException $e) {
