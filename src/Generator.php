@@ -145,7 +145,7 @@ final class Generator
 
 	/**
 	 * @param string $path
-	 * @return string[]
+	 * @return string[]|string[][]|mixed[][]
 	 */
 	private function formatConfigSections(string $path): array
 	{

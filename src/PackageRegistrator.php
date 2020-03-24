@@ -41,7 +41,7 @@ class PackageRegistrator
 	/** @var bool */
 	private static $runAfterScripts = false;
 
-	/** @var string[] */
+	/** @var true[] */
 	private static $neonNoUseParams = [
 		'includes' => true,
 		'application' => true,
@@ -112,7 +112,8 @@ class PackageRegistrator
 
 
 	/**
-	 * @return string[]
+	 * @internal
+	 * @return mixed[]
 	 */
 	public function getParameters(): array
 	{
@@ -129,14 +130,19 @@ class PackageRegistrator
 	 */
 	public function getPackageNamePatterns(): array
 	{
-		$return = ['^baraja-'];
-
+		$return = [];
 		$packageRegistrator = $this->getParameters()['packageRegistrator'] ?? null;
-		if (isset($packageRegistrator[$key = 'customPackagesNamePatterns']) && \is_array($packageRegistrator[$key])) {
-			return \array_merge($return, $packageRegistrator[$key]);
+		$key = 'customPackagesNamePatterns';
+
+		if (isset($packageRegistrator[$key]) === true && \is_array($packageRegistrator[$key]) === true) {
+			foreach (\array_merge($return, $packageRegistrator[$key]) as $item) {
+				if (\is_string($item) === true) {
+					$return[] = $item;
+				}
+			}
 		}
 
-		return $return;
+		return array_unique(array_merge(['^baraja-'], $return));
 	}
 
 
