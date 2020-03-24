@@ -362,5 +362,4 @@ class PackageRegistrator
 
 		return $cache;
 	}
-
 }

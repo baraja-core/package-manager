@@ -14,7 +14,12 @@ use Nette\Neon\Neon;
 final class ConfigLocalNeonTask extends BaseTask
 {
 
-	/** @var string[][] */
+	/**
+	 * This credentials will be automatically used for test connection.
+	 * If connection works it will be used for final Neon configuration.
+	 *
+	 * @var string[][]
+	 */
 	private static $commonCredentials = [
 		'localhost' => [
 			['root', 'root'],
@@ -273,5 +278,4 @@ final class ConfigLocalNeonTask extends BaseTask
 			die;
 		}
 	}
-
 }

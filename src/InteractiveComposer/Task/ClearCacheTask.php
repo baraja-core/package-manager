@@ -51,5 +51,4 @@ final class ClearCacheTask extends BaseTask
 	{
 		return 'Clear cache';
 	}
-
 }

@@ -52,5 +52,4 @@ class PackageDescriptorException extends \Exception
 			. "\n" . error_get_last()['message']
 		);
 	}
-
 }
