@@ -249,7 +249,7 @@ class PackageRegistrator
 			$tree = [];
 
 			if ($param === 'services') {
-				foreach (\is_array($values) ? $values : [] as $value) {
+				foreach ($values as $value) {
 					foreach ($neonData = Neon::decode($value['data']['data']) as $treeKey => $treeValue) {
 						if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
 							unset($neonData[$treeKey]);
@@ -308,13 +308,13 @@ class PackageRegistrator
 				$return .= str_replace("\n", "\n\t", Neon::encode($treeNumbers, Neon::BLOCK));
 				$tree = [];
 			} else {
-				foreach (\is_array($values) ? $values : [] as $value) {
-					if ($value['data']['rewrite'] === false) {
+				foreach ($values as $value) {
+					if ((bool) $value['data']['rewrite'] === false) {
 						$return .= '# ' . $value['name'] . ($value['version'] ? ' (' . $value['version'] . ')' : '')
 							. "\n\t" . str_replace("\n", "\n\t", $value['data']['data']);
 					}
 
-					if ($value['data']['rewrite'] === true) {
+					if ((bool) $value['data']['rewrite'] === true) {
 						$tree = Helpers::recursiveMerge($tree, $value['data']['data']);
 					}
 				}
