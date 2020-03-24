@@ -108,7 +108,7 @@ final class ClassMapGenerator
 						$t = $tokens[$i];
 						if ($t[0] === T_STRING) {
 							$class .= $t[1];
-						} elseif ('' !== $class && $t[0] === T_WHITESPACE) {
+						} elseif ($class !== '' && $t[0] === T_WHITESPACE) {
 							break;
 						}
 					}
