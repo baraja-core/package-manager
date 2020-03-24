@@ -57,10 +57,12 @@ final class AssetsFromPackageTask extends BaseTask
 		return true;
 	}
 
+
 	public function getName(): string
 	{
 		return 'Assets from package copier';
 	}
+
 
 	/**
 	 * @param string $path
@@ -72,6 +74,7 @@ final class AssetsFromPackageTask extends BaseTask
 		$this->copyInstallDir($path . 'install/', \rtrim(\dirname($basePath), '/') . '/');
 		$this->copyInstallDir($path . 'update/', \rtrim(\dirname($basePath), '/') . '/', true);
 	}
+
 
 	/**
 	 * @param string $source
@@ -94,6 +97,7 @@ final class AssetsFromPackageTask extends BaseTask
 
 		return true;
 	}
+
 
 	/**
 	 * @param string $basePath
@@ -134,6 +138,7 @@ final class AssetsFromPackageTask extends BaseTask
 			}
 		}
 	}
+
 
 	/**
 	 * Copy file with exactly content or throw exception.

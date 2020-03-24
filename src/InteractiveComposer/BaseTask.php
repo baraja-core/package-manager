@@ -11,15 +11,15 @@ use Baraja\PackageManager\PackageRegistrator;
 abstract class BaseTask implements ITask
 {
 
-	/**
-	 * @var PackageRegistrator
-	 */
+	/** @var PackageRegistrator */
 	protected $packageRegistrator;
+
 
 	final public function __construct(PackageRegistrator $packageRegistrator)
 	{
 		$this->packageRegistrator = $packageRegistrator;
 	}
+
 
 	/**
 	 * @param string $question

@@ -9,7 +9,7 @@ namespace Baraja\PackageManager;
  * Find all classes in specific directory.
  * Based on https://github.com/symfony/class-loader/blob/master/ClassMapGenerator.php
  */
-class ClassMapGenerator
+final class ClassMapGenerator
 {
 
 	/**
@@ -27,7 +27,7 @@ class ClassMapGenerator
 				continue;
 			}
 
-			if ('php' !== pathinfo($path = $file->getRealPath() ? : $file->getPathname(), PATHINFO_EXTENSION)) {
+			if ('php' !== pathinfo($path = $file->getRealPath() ?: $file->getPathname(), PATHINFO_EXTENSION)) {
 				continue;
 			}
 
@@ -45,6 +45,7 @@ class ClassMapGenerator
 
 		return $map;
 	}
+
 
 	/**
 	 * Extract the classes in the given file.

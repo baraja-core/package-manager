@@ -13,15 +13,15 @@ use Nette\Utils\Finder;
 final class Storage
 {
 
-	/**
-	 * @var string
-	 */
+	/** @var string */
 	private $basePath;
+
 
 	public function __construct(string $basePath)
 	{
 		$this->basePath = $basePath;
 	}
+
 
 	/**
 	 * @internal
@@ -47,6 +47,7 @@ final class Storage
 
 		PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
 	}
+
 
 	/**
 	 * @internal
@@ -107,6 +108,7 @@ final class Storage
 		}
 	}
 
+
 	/**
 	 * @internal
 	 * Convert Nette SmartObject with private methods to Nette ArrayHash structure.
@@ -148,6 +150,7 @@ final class Storage
 		return $return;
 	}
 
+
 	/**
 	 * @param int $ttl
 	 * @return string
@@ -180,6 +183,7 @@ final class Storage
 		return $cache;
 	}
 
+
 	/**
 	 * @param string $basePath
 	 * @return bool
@@ -192,6 +196,7 @@ final class Storage
 
 		return @rmdir($basePath);
 	}
+
 
 	/**
 	 * @param mixed|mixed[] $data

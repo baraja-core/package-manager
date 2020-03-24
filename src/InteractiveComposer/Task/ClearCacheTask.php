@@ -14,10 +14,9 @@ use Nette\Utils\FileSystem;
 final class ClearCacheTask extends BaseTask
 {
 
-	/**
-	 * @var string[]
-	 */
+	/** @var string[] */
 	public $tempDirectories = ['proxies'];
+
 
 	/**
 	 * @return bool
@@ -43,6 +42,7 @@ final class ClearCacheTask extends BaseTask
 
 		return true;
 	}
+
 
 	/**
 	 * @return string
