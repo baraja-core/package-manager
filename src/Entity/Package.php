@@ -10,7 +10,6 @@ use Nette\SmartObject;
 
 final class Package
 {
-
 	use SmartObject;
 
 	/** @var string */
@@ -56,7 +55,7 @@ final class Package
 
 
 	/**
-	 * @return null|string
+	 * @return string|null
 	 */
 	public function getVersion(): ?string
 	{

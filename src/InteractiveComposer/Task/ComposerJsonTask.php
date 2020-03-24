@@ -99,5 +99,4 @@ final class ComposerJsonTask extends BaseTask
 
 		return array_keys($return);
 	}
-
 }

@@ -27,7 +27,7 @@ final class ClassMapGenerator
 				continue;
 			}
 
-			if ('php' !== pathinfo($path = $file->getRealPath() ?: $file->getPathname(), PATHINFO_EXTENSION)) {
+			if (pathinfo($path = $file->getRealPath() ?: $file->getPathname(), PATHINFO_EXTENSION) !== 'php') {
 				continue;
 			}
 
@@ -90,7 +90,7 @@ final class ClassMapGenerator
 							break;
 						}
 
-						if (T_DOUBLE_COLON === $tokens[$j][0]) {
+						if ($tokens[$j][0] === T_DOUBLE_COLON) {
 							$isClassConstant = true;
 							break;
 						}
@@ -106,9 +106,9 @@ final class ClassMapGenerator
 					// Find the classname
 					while (isset($tokens[++$i][1])) {
 						$t = $tokens[$i];
-						if (T_STRING === $t[0]) {
+						if ($t[0] === T_STRING) {
 							$class .= $t[1];
-						} elseif ('' !== $class && T_WHITESPACE === $t[0]) {
+						} elseif ('' !== $class && $t[0] === T_WHITESPACE) {
 							break;
 						}
 					}
@@ -122,5 +122,4 @@ final class ClassMapGenerator
 
 		return $classes;
 	}
-
 }
