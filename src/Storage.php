@@ -26,28 +26,21 @@ final class Storage
 	/**
 	 * @internal
 	 * @return PackageDescriptorEntity
-	 * @throws PackageEntityDoesNotExistsException
-	 * @throws PackageDescriptorException
+	 * @throws PackageEntityDoesNotExistsException|PackageDescriptorException
 	 */
 	public function load(): PackageDescriptorEntity
 	{
-		static $cache;
-
-		if ($cache !== null) {
-			return $cache;
+		if (trim($path = $this->getPath()) === '' || filesize($path) < 10) {
+			PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
 		}
 
-		if (trim($this->getPath()) !== '' && filesize($this->getPath()) > 1) {
-			require_once $this->getPath();
+		require_once $path;
 
-			if (\class_exists(\PackageDescriptorEntity::class) === false) {
-				PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
-			}
-
-			return new \PackageDescriptorEntity();
+		if (\class_exists('\PackageDescriptorEntity') === false) {
+			PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
 		}
 
-		PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
+		return new \PackageDescriptorEntity();
 	}
 
 
@@ -167,11 +160,11 @@ final class Storage
 			$cache = $dir . '/PackageDescriptorEntity.php';
 
 			try {
-				if (is_dir($dir) === false && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
+				if (is_dir($dir) === false && !mkdir($dir, 0777, true) && !is_dir($dir)) {
 					PackageDescriptorException::canNotCreateTempDir($dir);
 				}
 
-				if (is_file($cache) === false && !@file_put_contents($cache, '') && !is_file($cache)) {
+				if (is_file($cache) === false && !file_put_contents($cache, '') && !is_file($cache)) {
 					PackageDescriptorException::canNotCreateTempFile($cache);
 				}
 			} catch (PackageDescriptorException $e) {
