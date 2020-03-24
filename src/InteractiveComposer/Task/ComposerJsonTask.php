@@ -18,9 +18,6 @@ use Nette\Utils\Strings;
 final class ComposerJsonTask extends BaseTask
 {
 
-	private const PRIORITY_PREFIX = 'baraja-';
-
-
 	/**
 	 * @return bool
 	 * @throws JsonException
@@ -50,7 +47,7 @@ final class ComposerJsonTask extends BaseTask
 		}
 
 		foreach ($require as $dependency => $version) {
-			if (Strings::startsWith($dependency, self::PRIORITY_PREFIX)
+			if (Strings::startsWith($dependency, 'baraja-')
 				&& preg_match('/^\D+(?<mainVersion>\d+)\./', $version, $versionParser)
 			) {
 				$require[$dependency] = '~' . $versionParser['mainVersion'] . '.0';
