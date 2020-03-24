@@ -12,15 +12,15 @@ use Baraja\PackageManager\Exception\TaskException;
 final class InteractiveComposer
 {
 
-	/**
-	 * @var PackageRegistrator
-	 */
+	/** @var PackageRegistrator */
 	private $packageRegistrator;
+
 
 	public function __construct(PackageRegistrator $packageRegistrator)
 	{
 		$this->packageRegistrator = $packageRegistrator;
 	}
+
 
 	public function run(): void
 	{
@@ -51,6 +51,7 @@ final class InteractiveComposer
 
 		echo "\n" . str_repeat('-', 100) . "\n\n\n" . 'All tasks was OK.' . "\n\n\n";
 	}
+
 
 	/**
 	 * @return string[]
