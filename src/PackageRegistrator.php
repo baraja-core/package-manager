@@ -8,8 +8,6 @@ namespace Baraja\PackageManager;
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Baraja\PackageManager\Exception\PackageEntityDoesNotExistsException;
-use Nette\Configurator;
-use Nette\DI\Container;
 use Nette\Neon\Entity;
 use Nette\Neon\Neon;
 use Tracy\Debugger;
@@ -23,9 +21,6 @@ class PackageRegistrator
 	/** @var string */
 	private static $projectRoot;
 
-	/** @var string[]|null */
-	private static $parameters;
-
 	/** @var string */
 	private static $configPath;
 
@@ -37,17 +32,6 @@ class PackageRegistrator
 
 	/** @var PackageDescriptorEntity */
 	private static $packageDescriptorEntity;
-
-	/** @var bool */
-	private static $runAfterScripts = false;
-
-	/** @var true[] */
-	private static $neonNoUseParams = [
-		'includes' => true,
-		'application' => true,
-		'routers' => true,
-		'afterInstall' => true,
-	];
 
 
 	/**
@@ -76,11 +60,10 @@ class PackageRegistrator
 				}
 			} catch (PackageEntityDoesNotExistsException $e) {
 				$storage->save(
-					self::$packageDescriptorEntity = (new Generator($projectRoot, $this->getPackageNamePatterns(), $storage))->run(),
+					self::$packageDescriptorEntity = (new Generator($projectRoot))->run(),
 					$this->getComposerHash()
 				);
 				$this->createPackageConfig(self::$packageDescriptorEntity);
-				self::$runAfterScripts = true;
 			}
 		} catch (PackageDescriptorException $e) {
 			Debugger::log($e);
@@ -108,41 +91,6 @@ class PackageRegistrator
 	public static function getPackageDescriptorEntityStatic(): PackageDescriptorEntity
 	{
 		return self::$packageDescriptorEntity;
-	}
-
-
-	/**
-	 * @internal
-	 * @return mixed[]
-	 */
-	public function getParameters(): array
-	{
-		if (self::$parameters === null && isset(($configNeon = Neon::decode(file_get_contents(self::$configPath)))['parameters'])) {
-			self::$parameters = $configNeon['parameters'];
-		}
-
-		return self::$parameters ?? [];
-	}
-
-
-	/**
-	 * @return string[]
-	 */
-	public function getPackageNamePatterns(): array
-	{
-		$return = [];
-		$packageRegistrator = $this->getParameters()['packageRegistrator'] ?? null;
-		$key = 'customPackagesNamePatterns';
-
-		if (isset($packageRegistrator[$key]) === true && \is_array($packageRegistrator[$key]) === true) {
-			foreach (\array_merge($return, $packageRegistrator[$key]) as $item) {
-				if (\is_string($item) === true) {
-					$return[] = $item;
-				}
-			}
-		}
-
-		return array_unique(array_merge(['^baraja-'], $return));
 	}
 
 
@@ -179,13 +127,14 @@ class PackageRegistrator
 
 
 	/**
+	 * @internal please use DIC, this is for legacy support only!
 	 * @param string $packageName
 	 * @return bool
 	 * @throws PackageDescriptorCompileException
 	 */
 	public function isPackageInstalled(string $packageName): bool
 	{
-		foreach (self::$packageDescriptorEntity->getPackagest(false) as $package) {
+		foreach (self::$packageDescriptorEntity->getPackagest() as $package) {
 			if ($package->getName() === $packageName) {
 				return true;
 			}
@@ -196,28 +145,11 @@ class PackageRegistrator
 
 
 	/**
-	 * @param Configurator $configurator
+	 * @deprecated since 2020-03-29
 	 */
-	public function runAfterActions(Configurator $configurator): void
+	public function runAfterActions(): void
 	{
-		static $created = false;
-
-		if ($created === false) {
-			$created = true;
-			if (self::$runAfterScripts === true) {
-				$containerClass = $configurator->loadContainer();
-				/** @var Container $container */
-				$container = new $containerClass;
-
-				foreach (self::$packageDescriptorEntity->getAfterInstallScripts() as $script) {
-					if (\class_exists($script) === true) {
-						/** @var IAfterInstall $instance */
-						$instance = new $script($container, $this);
-						$instance->run();
-					}
-				}
-			}
-		}
+		throw new \RuntimeException('Method "' . __METHOD__ . '" is deprecated. Please use DIC extension.');
 	}
 
 
@@ -229,9 +161,9 @@ class PackageRegistrator
 	{
 		$neon = [];
 
-		foreach ($packageDescriptorEntity->getPackagest(true) as $package) {
+		foreach ($packageDescriptorEntity->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
-				if (isset(self::$neonNoUseParams[$param]) === false) {
+				if ($param !== 'includes') {
 					$neon[$param][] = [
 						'name' => $package->getName(),
 						'version' => $package->getVersion(),

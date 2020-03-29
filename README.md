@@ -32,7 +32,7 @@ How to use
 In `Booting` class add create new instance of `PackageRegistrator`:
 
 ```php
-$packageRegistrator = new PackageRegistrator(
+new PackageRegistrator(
    __DIR__ . '/../',    // root path
    __DIR__ . '/../temp' // temp path
 );
