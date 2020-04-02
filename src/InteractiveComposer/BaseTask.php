@@ -65,7 +65,7 @@ abstract class BaseTask implements ITask
 	{
 		if (\class_exists(Bootstrap::class) === false) {
 			throw new \RuntimeException(
-				'Nette application does not exist, because class "' . Bootstrap::class . '" does not found.'
+				'Nette application does not exist, because class "\App\Bootstrap" does not found.'
 			);
 		}
 
