@@ -74,6 +74,8 @@ class PackageRegistrator
 
 	public static function composerPostAutoloadDump(): void
 	{
+		self::composerRenderCiDetectorInfo();
+
 		try {
 			(new InteractiveComposer(new self(__DIR__ . '/../../../../', __DIR__ . '/../../../../temp/')))->run();
 		} catch (\Exception $e) {
@@ -82,6 +84,53 @@ class PackageRegistrator
 			Debugger::log($e);
 			echo 'Error was logged to file.' . "\n\n";
 		}
+	}
+
+
+	/**
+	 * Render all information about current runner (CLI, CI or other).
+	 */
+	public static function composerRenderCiDetectorInfo(): void
+	{
+		try {
+			$ci = self::getCiDetect();
+		} catch (\Exception $e) {
+			Helpers::terminalRenderError($e->getMessage());
+			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
+			Debugger::log($e);
+			echo 'Error was logged to file.' . "\n\n";
+			$ci = null;
+		}
+
+		echo 'CI status: ' . ($ci === null ? 'No detected' : 'detected 👍') . "\n\n";
+		if ($ci !== null) {
+			echo 'CI name: ' . $ci->getCiName() . "\n";
+			echo 'is Pull request? ' . $ci->isPullRequest()->describe() . "\n";
+			echo 'Build number: ' . $ci->getBuildNumber() . "\n";
+			echo 'Build URL: ' . $ci->getBuildUrl() . "\n";
+			echo 'Git commit: ' . $ci->getGitCommit() . "\n";
+			echo 'Git branch: ' . $ci->getGitBranch() . "\n";
+			echo 'Repository name: ' . $ci->getRepositoryName() . "\n";
+			echo 'Repository URL: ' . $ci->getRepositoryUrl() . "\n";
+			echo '---------------------------------' . "\n\n";
+		}
+	}
+
+
+	/**
+	 * @return CiInterface|null
+	 * @throws PackageDescriptorException
+	 */
+	public static function getCiDetect(): ?CiInterface
+	{
+		/** @var CiInterface|null $cache */
+		static $cache;
+
+		if ($cache === null && ($ciDetector = new CiDetector)->isCiDetected()) {
+			$cache = $ciDetector->detect();
+		}
+
+		return $cache;
 	}
 
 
