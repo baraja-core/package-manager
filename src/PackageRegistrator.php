@@ -74,6 +74,24 @@ class PackageRegistrator
 
 	public static function composerPostAutoloadDump(): void
 	{
+		self::composerRenderCiDetectorInfo();
+
+		try {
+			(new InteractiveComposer(new self(__DIR__ . '/../../../../', __DIR__ . '/../../../../temp/')))->run();
+		} catch (\Exception $e) {
+			Helpers::terminalRenderError($e->getMessage());
+			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
+			Debugger::log($e);
+			echo 'Error was logged to file.' . "\n\n";
+		}
+	}
+
+
+	/**
+	 * Render all information about current runner (CLI, CI or other).
+	 */
+	public static function composerRenderCiDetectorInfo(): void
+	{
 		try {
 			$ci = self::getCiDetect();
 		} catch (\Exception $e) {
@@ -95,15 +113,6 @@ class PackageRegistrator
 			echo 'Repository name: ' . $ci->getRepositoryName() . "\n";
 			echo 'Repository URL: ' . $ci->getRepositoryUrl() . "\n";
 			echo '---------------------------------' . "\n\n";
-		}
-
-		try {
-			(new InteractiveComposer(new self(__DIR__ . '/../../../../', __DIR__ . '/../../../../temp/')))->run();
-		} catch (\Exception $e) {
-			Helpers::terminalRenderError($e->getMessage());
-			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
-			Debugger::log($e);
-			echo 'Error was logged to file.' . "\n\n";
 		}
 	}
 
