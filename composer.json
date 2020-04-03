@@ -31,6 +31,7 @@
 		]
 	},
 	"scripts": {
+		"post-autoload-dump": "Baraja\\PackageManager\\PackageRegistrator::composerRenderCiDetectorInfo",
 		"phpstan": [
 			"vendor/bin/phpstan analyse src -c phpstan.neon --level 6 --no-progress"
 		]
