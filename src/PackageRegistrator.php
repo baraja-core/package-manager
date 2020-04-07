@@ -10,13 +10,11 @@ use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Baraja\PackageManager\Exception\PackageEntityDoesNotExistsException;
 use Nette\Neon\Entity;
 use Nette\Neon\Neon;
+use Nette\Utils\FileSystem;
 use Tracy\Debugger;
 
 class PackageRegistrator
 {
-
-	/** @var bool */
-	private static $created = false;
 
 	/** @var string */
 	private static $projectRoot;
@@ -40,11 +38,12 @@ class PackageRegistrator
 	 */
 	public function __construct(?string $projectRoot = null, ?string $tempPath = null)
 	{
-		if (self::$created === true || $projectRoot === null || $tempPath === null) {
+		static $created = false;
+		if ($created === true || $projectRoot === null || $tempPath === null) {
 			return;
 		}
 
-		self::$created = true;
+		$created = true;
 		self::$projectRoot = rtrim($projectRoot, '/');
 		self::$configPath = self::$projectRoot . '/app/config/common.neon';
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
@@ -72,12 +71,32 @@ class PackageRegistrator
 	}
 
 
+	/**
+	 * Smart helper for automated Composer actions. This method will be called automatically.
+	 *
+	 * For register please add "scripts" section to your composer.json in project root:
+	 *
+	 * "scripts": {
+	 *    "post-autoload-dump": "Baraja\\PackageManager\\PackageRegistrator::composerPostAutoloadDump"
+	 * }
+	 */
 	public static function composerPostAutoloadDump(): void
 	{
+		if (PHP_SAPI !== 'cli') {
+			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
+		}
+
+		$projectRoot = __DIR__ . '/../../../../';
+
+		if (Debugger::$logDirectory === null) {
+			Debugger::enable(false, $projectRoot . '/log');
+			FileSystem::createDir(Debugger::$logDirectory);
+		}
+
 		self::composerRenderCiDetectorInfo();
 
 		try {
-			(new InteractiveComposer(new self(__DIR__ . '/../../../../', __DIR__ . '/../../../../temp/')))->run();
+			(new InteractiveComposer(new self($projectRoot, $projectRoot . '/temp')))->run();
 		} catch (\Exception $e) {
 			Helpers::terminalRenderError($e->getMessage());
 			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
