@@ -7,5 +7,3 @@ parameters:
 		- '#Instantiated class PackageDescriptorEntity not found\.#'
 		- '#Method Baraja\\PackageManager\\Storage::load\(\) should return Baraja\\PackageManager\\PackageDescriptorEntity but returns PackageDescriptorEntity\.#'
 		- '#Negated boolean expression is always true\.#'
-		- '#Class App\\Bootstrap not found\.#'
-		- '#Call to static method boot\(\) on an unknown class App\\Bootstrap\.#'
