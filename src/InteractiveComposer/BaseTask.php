@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Baraja\PackageManager\Composer;
 
 
-use App\Bootstrap;
 use Baraja\PackageManager\Helpers;
 use Baraja\PackageManager\PackageRegistrator;
 use Nette\Configurator;
@@ -63,12 +62,14 @@ abstract class BaseTask implements ITask
 	 */
 	private function bootApplication(): Configurator
 	{
-		if (\class_exists(Bootstrap::class) === false) {
-			throw new \RuntimeException(
-				'Nette application does not exist, because class "\App\Bootstrap" does not found.'
-			);
+		foreach (['\App\Bootstrap', '\App\Booting'] as $class) {
+			if (\class_exists($class) === true) {
+				return $class::boot();
+			}
 		}
 
-		return Bootstrap::boot();
+		throw new \RuntimeException(
+			'Nette application does not exist, because class "Booting" or "Bootstrap" does not found.'
+		);
 	}
 }
