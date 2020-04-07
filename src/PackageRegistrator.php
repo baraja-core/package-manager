@@ -89,8 +89,8 @@ class PackageRegistrator
 		$projectRoot = __DIR__ . '/../../../../';
 
 		if (Debugger::$logDirectory === null) {
+			FileSystem::createDir($projectRoot . '/log');
 			Debugger::enable(false, $projectRoot . '/log');
-			FileSystem::createDir(Debugger::$logDirectory);
 		}
 
 		self::composerRenderCiDetectorInfo();
