@@ -37,7 +37,9 @@ final class Console
 			echo "\n" . 'Exit with code #' . $runCode;
 			exit($runCode);
 		} catch (\Throwable $e) {
-			Debugger::log($e);
+			if (\class_exists(Debugger::class) === true) {
+				Debugger::log($e, 'critical');
+			}
 			if (\is_file($logPath = \dirname(__DIR__, 4) . '/log/exception.log') === true) {
 				$data = file($logPath);
 				$logLine = trim((string) ($data[\count($data) - 1] ?? '???'));
