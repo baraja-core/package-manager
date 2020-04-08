@@ -18,7 +18,7 @@ final class Console
 	 */
 	public function __construct(Application $consoleApplication, NetteApplication $netteApplication)
 	{
-		$netteApplication->onStartup[] = function (NetteApplication $application) use ($consoleApplication) {
+		$netteApplication->onStartup[] = function (NetteApplication $application) use ($consoleApplication): void {
 			$this->run($consoleApplication);
 		};
 	}
