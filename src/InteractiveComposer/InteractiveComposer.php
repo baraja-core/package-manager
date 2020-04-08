@@ -25,13 +25,14 @@ final class InteractiveComposer
 
 	public function run(): void
 	{
-		foreach ($this->getTasks() as $taskClass) {
+		foreach ($this->getTasks() as $taskItem) {
+			$taskClass = $taskItem[0];
 			echo "\n" . str_repeat('-', 100) . "\n";
 
 			/** @var ITask $task */
 			$task = new $taskClass($this->packageRegistrator);
 
-			echo "\e[0;32;40m" . '🍏 Task: ' . $task->getName() . "\e[0m\n";
+			echo "\e[0;32;40m" . '🍏 [' . $taskItem[1] . ']: ' . $task->getName() . "\e[0m\n";
 
 			try {
 				if ($task->run() === true) {
@@ -56,17 +57,19 @@ final class InteractiveComposer
 			}
 		}
 
-		echo "\n" . str_repeat('-', 100) . "\n\n\n" . 'All tasks was OK.' . "\n\n\n";
+		echo "\n" . str_repeat('-', 100) . "\n\n\n" . 'All tasks completed successfully.' . "\n\n\n";
 	}
 
 
 	/**
-	 * @return string[]
+	 * @return string[][]|int[][]
 	 */
 	private function getTasks(): array
 	{
 		$return = [];
-		echo 'Indexing classes...' . "\n";
+		$startTime = microtime(true);
+		echo 'Indexing classes...';
+		$identityTemplate = null;
 
 		foreach (array_keys(ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot())) as $className) {
 			if (\is_string($className) === false) {
@@ -92,21 +95,21 @@ final class InteractiveComposer
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(CompanyIdentity::class) === true) {
 						/** @var CompanyIdentity $identity */
 						$identity = $ref->newInstance();
-
-						echo $identity->getLogo() . "\n" . str_repeat('-', 100) . "\n";
+						$identityTemplate = $identity->getLogo();
 					}
 				} catch (\ReflectionException $e) {
 				}
 			}
 		}
-		echo "\n";
+		echo ' (' . number_format((microtime(true) - $startTime) * 1000, 2, '.', ' ') . ' ms)' . "\n";
+		if ($identityTemplate !== null) {
+			echo $identityTemplate . "\n";
+		}
 
 		usort($return, static function (array $a, array $b): int {
 			return $a[1] < $b[1] ? 1 : -1;
 		});
 
-		return array_map(static function (array $haystack): string {
-			return $haystack[0];
-		}, $return);
+		return $return;
 	}
 }
