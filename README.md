@@ -1,6 +1,8 @@
 Package manager
 ===============
 
+![Integrity check](https://github.com/baraja-core/package-manager/workflows/Integrity%20check/badge.svg)
+
 Search all package dependencies automatically and register to your project.
 
 **Please help improve code and documentation in English. Pull requests and issues are very welcomed!**
