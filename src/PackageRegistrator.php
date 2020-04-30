@@ -8,6 +8,7 @@ namespace Baraja\PackageManager;
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Baraja\PackageManager\Exception\PackageEntityDoesNotExistsException;
+use Composer\Autoload\ClassLoader;
 use Nette\Neon\Entity;
 use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
@@ -39,8 +40,32 @@ class PackageRegistrator
 	public function __construct(?string $projectRoot = null, ?string $tempPath = null)
 	{
 		static $created = false;
-		if ($created === true || $projectRoot === null || $tempPath === null) {
+
+		if ($created === true) {
 			return;
+		}
+
+		if ($projectRoot === null || $tempPath === null) {
+			try {
+				$loaderRc = class_exists(ClassLoader::class) ? new \ReflectionClass(ClassLoader::class) : null;
+				$vendorDir = $loaderRc ? dirname($loaderRc->getFileName(), 2) : null;
+			} catch (\ReflectionException $e) {
+				$vendorDir = null;
+			}
+			if ($vendorDir !== null && PHP_SAPI === 'cli' && strncmp($vendorDir, 'phar://', 7) === 0) {
+				$vendorDir = (string) preg_replace('/^(.+?\/vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
+			}
+			if ($projectRoot === null) {
+				$projectRoot = dirname($vendorDir);
+			}
+			if ($tempPath === null) {
+				$tempPath = rtrim($projectRoot, '/') . '/temp';
+			}
+		}
+
+		if (Debugger::$logDirectory === null) {
+			FileSystem::createDir($projectRoot . '/log');
+			Debugger::enable(false, $projectRoot . '/log');
 		}
 
 		$created = true;
@@ -86,17 +111,10 @@ class PackageRegistrator
 			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
 		}
 
-		$projectRoot = __DIR__ . '/../../../../';
-
-		if (Debugger::$logDirectory === null) {
-			FileSystem::createDir($projectRoot . '/log');
-			Debugger::enable(false, $projectRoot . '/log');
-		}
-
 		self::composerRenderCiDetectorInfo();
 
 		try {
-			(new InteractiveComposer(new self($projectRoot, $projectRoot . '/temp')))->run();
+			(new InteractiveComposer(new self))->run();
 		} catch (\Exception $e) {
 			Helpers::terminalRenderError($e->getMessage());
 			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
