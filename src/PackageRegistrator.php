@@ -53,7 +53,7 @@ class PackageRegistrator
 				$vendorDir = null;
 			}
 			if ($vendorDir !== null && PHP_SAPI === 'cli' && strncmp($vendorDir, 'phar://', 7) === 0) {
-				$vendorDir = (string) preg_replace('/^(.+?\/vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
+				$vendorDir = (string) preg_replace('/^(.+?[\\\\|\/]vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
 			}
 			if ($projectRoot === null) {
 				$projectRoot = dirname($vendorDir);
