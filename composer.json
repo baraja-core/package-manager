@@ -17,7 +17,7 @@
 		"nette/application": "^3.0",
 		"nette/neon": "^3.0",
 		"nette/finder": "^2.5",
-		"contributte/console": "^0.6.0"
+		"contributte/console": "^0.8.0"
 	},
 	"require-dev": {
 		"nette/bootstrap": "^3.0",
