@@ -32,6 +32,9 @@ class PackageRegistrator
 	/** @var PackageDescriptorEntity */
 	private static $packageDescriptorEntity;
 
+	/** @var bool */
+	private static $configurationMode = false;
+
 
 	/**
 	 * @param string|null $projectRoot
@@ -97,6 +100,15 @@ class PackageRegistrator
 
 
 	/**
+	 * @return bool
+	 */
+	final public static function isConfigurationMode(): bool
+	{
+		return self::$configurationMode;
+	}
+
+
+	/**
 	 * Smart helper for automated Composer actions. This method will be called automatically.
 	 *
 	 * For register please add "scripts" section to your composer.json in project root:
@@ -112,6 +124,19 @@ class PackageRegistrator
 		}
 
 		self::composerRenderCiDetectorInfo();
+
+		if (isset($_SERVER['argv'][2]) === true && $_SERVER['argv'][2] === '--') {
+			self::$configurationMode = true;
+		}
+
+		if (self::isConfigurationMode() === true) {
+			echo '️⚙️️  This is a advance configuration mode.' . "\n";
+			echo '---------------------------------' . "\n\n";
+		} else {
+			echo '️⚔️  This is a regular mode.' . "\n";
+			echo '   If you want use advance configuration, please use command "composer dump --".' . "\n";
+			echo '---------------------------------' . "\n\n";
+		}
 
 		try {
 			(new InteractiveComposer(new self))->run();
