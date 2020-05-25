@@ -286,93 +286,77 @@ class PackageRegistrator
 
 		$return = '';
 		$anonymousServiceCounter = 0;
-
-		foreach ($neon as $param => $values) {
-			$return .= "\n" . $param . ':' . "\n\t";
+		$neonKeys = array_keys($neon);
+		sort($neonKeys);
+		foreach ($neonKeys as $neonKey) {
+			$packageInfos = $neon[$neonKey];
+			$return .= "\n" . $neonKey . ':' . "\n\t";
 			$tree = [];
-
-			if ($param === 'services') {
-				foreach ($values as $value) {
-					foreach ($neonData = Neon::decode($value['data']['data']) as $treeKey => $treeValue) {
-						if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
-							unset($neonData[$treeKey]);
-							$neonData['helperKey_' . $anonymousServiceCounter] = $treeValue;
-							$anonymousServiceCounter++;
-						}
-					}
-
-					$tree = Helpers::recursiveMerge($tree, $neonData);
-				}
-
-				$treeNumbers = [];
-				$treeOthers = [];
-				foreach ($tree as $treeKey => $treeValue) {
-					if (preg_match('/^helperKey_\d+$/', $treeKey)) {
-						$treeNumbers[] = $treeValue;
-					} else {
-						$treeOthers[$treeKey] = $treeValue;
+			foreach ($packageInfos as $packageInfo) {
+				$neonData = \is_array($packageData = $packageInfo['data']['data'] ?? $packageInfo['data']) ? $packageData : Neon::decode($packageData);
+				foreach ($neonData as $treeKey => $treeValue) {
+					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
+						unset($neonData[$treeKey]);
+						$neonData['helperKey_' . $anonymousServiceCounter] = $treeValue;
+						$anonymousServiceCounter++;
 					}
 				}
+				$tree = Helpers::recursiveMerge($tree, $neonData);
+			}
 
-				ksort($treeOthers);
+			$treeNumbers = [];
+			$treeOthers = [];
+			foreach ($tree as $treeKey => $treeValue) {
+				if (preg_match('/^helperKey_\d+$/', $treeKey)) {
+					$treeNumbers[] = $treeValue;
+				} else {
+					$treeOthers[$treeKey] = $treeValue;
+				}
+			}
 
-				usort($treeNumbers, function ($left, $right): int {
-					$score = static function ($item): int {
-						if (\is_string($item)) {
-							return 1;
-						}
+			ksort($treeOthers);
 
-						$array = [];
-						$score = 0;
-						if (\is_iterable($item)) {
-							$score = 2;
-						}
-
-						if ($item instanceof Entity) {
-							$array = (array) $item->value;
-							$score += 3;
-						}
-
-						if (isset($array['factory'])) {
-							return $score + 1;
-						}
-
-						return $score;
-					};
-
-					if (($a = $score($left)) > ($b = $score($right))) {
-						return -1;
+			usort($treeNumbers, function ($left, $right): int {
+				$score = static function ($item): int {
+					if (\is_string($item)) {
+						return 1;
 					}
 
-					return $a === $b ? 0 : 1;
-				});
+					$array = [];
+					$score = 0;
+					if (\is_iterable($item)) {
+						$score = 2;
+					}
 
+					if ($item instanceof Entity) {
+						$array = (array) $item->value;
+						$score += 3;
+					}
+
+					if (isset($array['factory']) === true) {
+						return $score + 1;
+					}
+
+					return $score;
+				};
+
+				if (($a = $score($left)) > ($b = $score($right))) {
+					return -1;
+				}
+
+				return $a === $b ? 0 : 1;
+			});
+
+			if ($treeOthers !== []) {
 				$return .= str_replace("\n", "\n\t", Neon::encode($treeOthers, Neon::BLOCK));
+			}
+			if ($treeNumbers !== []) {
 				$return .= str_replace("\n", "\n\t", Neon::encode($treeNumbers, Neon::BLOCK));
-				$tree = [];
-			} else {
-				foreach ($values as $value) {
-					if ((bool) $value['data']['rewrite'] === false) {
-						$return .= '# ' . $value['name'] . ($value['version'] ? ' (' . $value['version'] . ')' : '')
-							. "\n\t" . str_replace("\n", "\n\t", $value['data']['data']);
-					}
-
-					if ((bool) $value['data']['rewrite'] === true) {
-						$tree = Helpers::recursiveMerge($tree, $value['data']['data']);
-					}
-				}
 			}
-
-			if ($tree !== []) {
-				$return .= str_replace("\n", "\n\t", Neon::encode($tree, Neon::BLOCK));
-			}
-
 			$return = trim($return) . "\n";
 		}
 
-		$return = (string) preg_replace('/(\s)\[\]\-(\s)/', '$1-$2', $return);
-
-		if (!@file_put_contents(self::$configPackagePath, trim($return) . "\n")) {
+		if (!@file_put_contents(self::$configPackagePath, trim((string) preg_replace('/(\s)\[\]\-(\s)/', '$1-$2', $return)) . "\n")) {
 			PackageDescriptorException::canNotRewritePackageNeon(self::$configPackagePath);
 		}
 	}
