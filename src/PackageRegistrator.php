@@ -55,7 +55,7 @@ class PackageRegistrator
 			} catch (\ReflectionException $e) {
 				$vendorDir = null;
 			}
-			if ($vendorDir !== null && PHP_SAPI === 'cli' && strncmp($vendorDir, 'phar://', 7) === 0) {
+			if ($vendorDir !== null && PHP_SAPI === 'cli' && (strncmp($vendorDir, 'phar://', 7) === 0 || strncmp($vendorDir, '/usr/share', 10) === 0)) {
 				$vendorDir = (string) preg_replace('/^(.+?[\\\\|\/]vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
 			}
 			if ($projectRoot === null) {
