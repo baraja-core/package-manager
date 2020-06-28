@@ -7,7 +7,9 @@ namespace Baraja\PackageManager;
 
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Baraja\PackageManager\Exception\PackageEntityDoesNotExistsException;
+use Nette\IOException;
 use Nette\PhpGenerator\ClassType;
+use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
 
 final class Storage
@@ -118,21 +120,18 @@ final class Storage
 			$cache = $dir . '/PackageDescriptorEntity.php';
 
 			try {
-				if (is_dir($dir) === false && !mkdir($dir, 0777, true) && !is_dir($dir)) {
-					PackageDescriptorException::canNotCreateTempDir($dir);
+				FileSystem::createDir($dir, 0777);
+				if (\is_file($cache) === false) {
+					FileSystem::write($cache, '');
 				}
-
-				if (is_file($cache) === false && !file_put_contents($cache, '') && !is_file($cache)) {
-					PackageDescriptorException::canNotCreateTempFile($cache);
-				}
-			} catch (PackageDescriptorException $e) {
+			} catch (IOException $e) {
 				if ($ttl > 0) {
 					$this->tryFixTemp($dir);
 
 					return $this->getPath($ttl - 1);
 				}
 
-				throw $e;
+				throw new PackageDescriptorException($e->getMessage(), $e->getCode(), $e);
 			}
 		}
 
