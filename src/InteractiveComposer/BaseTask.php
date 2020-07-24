@@ -55,11 +55,6 @@ abstract class BaseTask implements ITask
 	}
 
 
-	/**
-	 * Try find Nette application and boot.
-	 *
-	 * @return Configurator
-	 */
 	private function bootApplication(): Configurator
 	{
 		foreach (['\App\Bootstrap', '\App\Booting'] as $class) {
@@ -68,8 +63,6 @@ abstract class BaseTask implements ITask
 			}
 		}
 
-		throw new \RuntimeException(
-			'Nette application does not exist, because class "Booting" or "Bootstrap" does not found.'
-		);
+		throw new \RuntimeException('Nette application does not exist, because class "Booting" or "Bootstrap" does not found.');
 	}
 }

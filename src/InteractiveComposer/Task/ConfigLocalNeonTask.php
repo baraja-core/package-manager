@@ -78,9 +78,6 @@ final class ConfigLocalNeonTask extends BaseTask
 	}
 
 
-	/**
-	 * @return string
-	 */
 	public function getName(): string
 	{
 		return 'Local.neon checker';
@@ -268,10 +265,6 @@ final class ConfigLocalNeonTask extends BaseTask
 	}
 
 
-	/**
-	 * @param string $name
-	 * @param \PDO $connection
-	 */
 	private function createDatabase(string $name, \PDO $connection): void
 	{
 		$sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '`; ' . "\n"
