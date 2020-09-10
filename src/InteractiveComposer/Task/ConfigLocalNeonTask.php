@@ -52,6 +52,11 @@ final class ConfigLocalNeonTask extends BaseTask
 
 			return true;
 		}
+		if (\class_exists('\Baraja\Doctrine\EntityManager') === false) {
+			file_put_contents($path, '');
+
+			return true;
+		}
 
 		try {
 			if (PackageRegistrator::getCiDetect() !== null) {
@@ -174,14 +179,12 @@ final class ConfigLocalNeonTask extends BaseTask
 		}
 
 		return [
-			'parameters' => [
-				'database' => [
-					'primary' => [
-						'host' => $mySqlCredentials['server'],
-						'dbname' => $usedDatabase,
-						'user' => $mySqlCredentials['user'],
-						'password' => $mySqlCredentials['password'],
-					],
+			'baraja.database' => [
+				'connection' => [
+					'host' => $mySqlCredentials['server'],
+					'dbname' => $usedDatabase,
+					'user' => $mySqlCredentials['user'],
+					'password' => $mySqlCredentials['password'],
 				],
 			],
 		];
@@ -304,14 +307,12 @@ final class ConfigLocalNeonTask extends BaseTask
 	private function getDefaultTestConfiguration(): array
 	{
 		return [
-			'parameters' => [
-				'database' => [
-					'primary' => [
-						'host' => 'localhost',
-						'dbname' => 'test',
-						'user' => 'root',
-						'password' => 'root',
-					],
+			'baraja.database' => [
+				'connection' => [
+					'host' => 'localhost',
+					'dbname' => 'test',
+					'user' => 'root',
+					'password' => 'root',
 				],
 			],
 		];
