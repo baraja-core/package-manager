@@ -48,7 +48,18 @@ abstract class BaseTask implements ITask
 		static $container;
 
 		if ($container === null) {
-			$container = $this->bootApplication()->createContainer();
+			if (\is_dir($rootDir = dirname(__DIR__, 5)) === false) {
+				throw new \RuntimeException('Root dir "' . $rootDir . '" does not exist.');
+			}
+			$application = $this->bootApplication();
+			$application->addParameters([ // hack for Nette default parameters resolver
+				'rootDir' => $rootDir,
+				'appDir' => $rootDir . '/app',
+				'wwwDir' => $rootDir . '/www',
+				'vendorDir' => $rootDir . '/vendor',
+				'tempDir' => $rootDir . '/temp',
+			]);
+			$container = $application->createContainer();
 		}
 
 		return $container;
