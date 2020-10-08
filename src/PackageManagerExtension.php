@@ -11,6 +11,16 @@ use Nette\PhpGenerator\ClassType;
 
 final class PackageManagerExtension extends CompilerExtension
 {
+	public function beforeCompile(): void
+	{
+		$builder = $this->getContainerBuilder();
+
+		$builder->addDefinition('baraja.packageRegistrator')
+			->setFactory(PackageRegistrator::class)
+			->setAutowired(PackageRegistrator::class);
+	}
+
+
 	public function afterCompile(ClassType $class): void
 	{
 		if (PHP_SAPI === 'cli' && class_exists(Application::class) === true) {
