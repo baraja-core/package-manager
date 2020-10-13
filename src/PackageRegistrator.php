@@ -171,14 +171,12 @@ class PackageRegistrator
 
 
 	/**
-	 * @return CiInterface|null
 	 * @throws PackageDescriptorException
 	 */
 	public static function getCiDetect(): ?CiInterface
 	{
 		/** @var CiInterface|null $cache */
 		static $cache;
-
 		if ($cache === null && ($ciDetector = new CiDetector)->isCiDetected()) {
 			$cache = $ciDetector->detect();
 		}
@@ -206,7 +204,6 @@ class PackageRegistrator
 
 
 	/**
-	 * @return string
 	 * @throws PackageDescriptorException
 	 */
 	public function getConfig(): string
@@ -221,8 +218,6 @@ class PackageRegistrator
 
 	/**
 	 * @internal please use DIC, this is for legacy support only!
-	 * @param string $packageName
-	 * @return bool
 	 * @throws PackageDescriptorCompileException
 	 */
 	public function isPackageInstalled(string $packageName): bool
@@ -238,16 +233,19 @@ class PackageRegistrator
 
 
 	/**
-	 * @param PackageDescriptorEntity $packageDescriptorEntity
 	 * @throws PackageDescriptorException
 	 */
 	private function createPackageConfig(PackageDescriptorEntity $packageDescriptorEntity): void
 	{
+		$extensions = [];
 		$neon = [];
-
 		foreach ($packageDescriptorEntity->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
-				if ($param !== 'includes') {
+				if ($param === 'extensions') {
+					foreach ($value['data'] ?? [] as $extensionName => $extensionType) {
+						$extensions[$extensionName] = $extensionType;
+					}
+				} elseif ($param !== 'includes') {
 					$neon[$param][] = [
 						'name' => $package->getName(),
 						'version' => $package->getVersion(),
@@ -326,6 +324,9 @@ class PackageRegistrator
 			}
 			$return = trim($return) . "\n";
 		}
+		if ($extensions !== []) {
+			$return .= "\n" . ExtensionSorter::serializeExtenionList($extensions);
+		}
 
 		FileSystem::write(self::$configPackagePath, trim((string) preg_replace('/(\s)\[\]\-(\s)/', '$1-$2', $return)) . "\n");
 	}
@@ -345,14 +346,11 @@ class PackageRegistrator
 
 
 	/**
-	 * Return hash of installed.json, if composer does not used, return empty string
-	 *
-	 * @return string
+	 * Return hash of installed.json, if composer does not used, return empty string.
 	 */
 	private function getComposerHash(): string
 	{
 		static $cache;
-
 		if ($cache === null) {
 			$cache = (@md5_file(self::$projectRoot . '/vendor/composer/installed.json')) ?: md5((string) time());
 		}
