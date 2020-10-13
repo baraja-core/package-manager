@@ -38,8 +38,8 @@ final class ExtensionSorter
 				'key' => $key,
 				'type' => $type,
 				'definition' => $definition,
-				'mustBeDefinedBefore' => \method_exists($type, 'mustBeDefinedBefore') ? $type::mustBeDefinedBefore() : null,
-				'mustBeDefinedAfter' => \method_exists($type, 'mustBeDefinedAfter') ? $type::mustBeDefinedAfter() : null,
+				'mustBeDefinedBefore' => self::invokeStaticMethodSafe($type, 'mustBeDefinedBefore'),
+				'mustBeDefinedAfter' => self::invokeStaticMethodSafe($type, 'mustBeDefinedAfter'),
 			];
 		}
 
@@ -49,6 +49,19 @@ final class ExtensionSorter
 		}
 
 		return 'extensions:' . "\n" . $return;
+	}
+
+
+	/**
+	 * @return string[]|null
+	 */
+	private static function invokeStaticMethodSafe(string $class, string $method): ?array
+	{
+		if (\method_exists($class, $method) === false) {
+			return null;
+		}
+
+		return ((array) call_user_func($class . '::' . $method)) ?: null;
 	}
 
 
