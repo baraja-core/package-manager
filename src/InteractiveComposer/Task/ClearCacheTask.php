@@ -15,7 +15,7 @@ final class ClearCacheTask extends BaseTask
 {
 
 	/** @var string[] */
-	public $tempDirectories = ['proxies'];
+	public array $tempDirectories = ['proxies'];
 
 
 	public function run(): bool

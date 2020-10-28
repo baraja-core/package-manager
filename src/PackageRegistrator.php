@@ -16,24 +16,17 @@ use Tracy\Debugger;
 
 class PackageRegistrator
 {
+	private static string $projectRoot;
 
-	/** @var string */
-	private static $projectRoot;
+	private static string $configPath;
 
-	/** @var string */
-	private static $configPath;
+	private static string $configPackagePath;
 
-	/** @var string */
-	private static $configPackagePath;
+	private static string $configLocalPath;
 
-	/** @var string */
-	private static $configLocalPath;
+	private static PackageDescriptorEntity $packageDescriptorEntity;
 
-	/** @var PackageDescriptorEntity */
-	private static $packageDescriptorEntity;
-
-	/** @var bool */
-	private static $configurationMode = false;
+	private static bool $configurationMode = false;
 
 
 	public function __construct(?string $projectRoot = null, ?string $tempPath = null)

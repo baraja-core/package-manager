@@ -12,9 +12,7 @@ use Nette\Neon\Neon;
 
 final class Generator
 {
-
-	/** @var string */
-	private $projectRoot;
+	private string $projectRoot;
 
 
 	public function __construct(string $projectRoot)
@@ -25,7 +23,6 @@ final class Generator
 
 	/**
 	 * @internal
-	 * @return PackageDescriptorEntity
 	 * @throws PackageDescriptorException
 	 */
 	public function run(): PackageDescriptorEntity
@@ -108,7 +105,6 @@ final class Generator
 
 
 	/**
-	 * @param string $path
 	 * @return string[]|string[][]|mixed[][]
 	 */
 	private function formatConfigSections(string $path): array
@@ -117,7 +113,6 @@ final class Generator
 		foreach (\is_array($neon = Neon::decode(file_get_contents($path))) ? $neon : [] as $part => $haystack) {
 			if ($part === 'services') {
 				$servicesList = '';
-
 				foreach ($haystack as $key => $serviceClass) {
 					$servicesList .= (\is_int($key) ? '- ' : $key . ': ') . Neon::encode($serviceClass) . "\n";
 				}
