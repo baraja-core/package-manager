@@ -9,7 +9,6 @@ final class TaskException extends PackageDescriptorException
 {
 
 	/**
-	 * @param string $path
 	 * @throws TaskException
 	 */
 	public static function canNotCopyFile(string $path): void
@@ -19,7 +18,6 @@ final class TaskException extends PackageDescriptorException
 
 
 	/**
-	 * @param string $path
 	 * @throws TaskException
 	 */
 	public static function canNotCreateProjectDirectory(string $path): void
@@ -29,8 +27,6 @@ final class TaskException extends PackageDescriptorException
 
 
 	/**
-	 * @param string $from
-	 * @param string $to
 	 * @throws TaskException
 	 */
 	public static function canNotCopyProjectFile(string $from, string $to): void

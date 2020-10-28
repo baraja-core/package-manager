@@ -12,15 +12,13 @@ use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
  */
 class PackageDescriptorEntity
 {
-
-	/** @var bool */
-	protected $__close = false;
+	protected bool $__close = false;
 
 	/** @var \stdClass[] */
-	protected $composer;
+	protected array $composer;
 
 	/** @var mixed[] */
-	protected $packagest = [];
+	protected array $packagest = [];
 
 
 	public function isClose(): bool
@@ -63,7 +61,6 @@ class PackageDescriptorEntity
 
 
 	/**
-	 * @param bool|null $customPackagesOnly
 	 * @return Package[]
 	 * @throws PackageDescriptorCompileException
 	 */

@@ -15,7 +15,6 @@ final class AssetsFromPackageTask extends BaseTask
 {
 
 	/**
-	 * @return bool
 	 * @throws TaskException
 	 */
 	public function run(): bool

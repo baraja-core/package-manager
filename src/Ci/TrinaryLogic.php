@@ -20,10 +20,9 @@ final class TrinaryLogic
 	private const NO = -1;
 
 	/** @var self[] */
-	private static $registry = [];
+	private static array $registry = [];
 
-	/** @var int */
-	private $value;
+	private int $value;
 
 
 	private function __construct(int $value)

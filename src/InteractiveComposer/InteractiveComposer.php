@@ -12,9 +12,7 @@ use Tracy\Debugger;
 
 final class InteractiveComposer
 {
-
-	/** @var PackageRegistrator */
-	private $packageRegistrator;
+	private PackageRegistrator $packageRegistrator;
 
 
 	public function __construct(PackageRegistrator $packageRegistrator)

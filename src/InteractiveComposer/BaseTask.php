@@ -12,9 +12,7 @@ use Nette\DI\Container;
 
 abstract class BaseTask implements ITask
 {
-
-	/** @var PackageRegistrator */
-	protected $packageRegistrator;
+	protected PackageRegistrator $packageRegistrator;
 
 
 	final public function __construct(PackageRegistrator $packageRegistrator)

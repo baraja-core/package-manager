@@ -9,7 +9,6 @@ final class PackageDescriptorCompileException extends PackageDescriptorException
 {
 
 	/**
-	 * @param string $lockPath
 	 * @throws PackageDescriptorCompileException
 	 */
 	public static function canNotLoadComposerLock(string $lockPath): void
@@ -19,7 +18,6 @@ final class PackageDescriptorCompileException extends PackageDescriptorException
 
 
 	/**
-	 * @param string $packageName
 	 * @throws PackageDescriptorCompileException
 	 */
 	public static function composerJsonIsBroken(string $packageName): void

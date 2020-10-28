@@ -11,20 +11,17 @@ final class Package
 {
 	use SmartObject;
 
-	/** @var string */
-	private $name;
+	private string $name;
 
-	/** @var string|null */
-	private $version;
+	private ?string $version;
 
-	/** @var string */
-	private $dependency;
+	private string $dependency;
 
 	/** @var string[][]|mixed[][][] */
-	private $config;
+	private array $config;
 
 	/** @var mixed[] */
-	private $composer;
+	private array $composer;
 
 
 	/**

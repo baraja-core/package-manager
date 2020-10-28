@@ -14,9 +14,7 @@ use Nette\Utils\Finder;
 
 final class Storage
 {
-
-	/** @var string */
-	private $basePath;
+	private string $basePath;
 
 
 	public function __construct(string $basePath)
@@ -26,9 +24,8 @@ final class Storage
 
 
 	/**
-	 * @internal
-	 * @return PackageDescriptorEntity
 	 * @throws PackageEntityDoesNotExistsException|PackageDescriptorException
+	 * @internal
 	 */
 	public function load(): PackageDescriptorEntity
 	{
@@ -42,7 +39,7 @@ final class Storage
 			PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
 		}
 
-		return new \PackageDescriptorEntity();
+		return new \PackageDescriptorEntity;
 	}
 
 
@@ -79,13 +76,22 @@ final class Storage
 
 		foreach ((new \ReflectionObject($packageDescriptorEntity))->getProperties() as $property) {
 			if ($property->getName() === '__close') {
-				$class->addProperty($property->getName(), true)->setVisibility('protected');
+				$class->addProperty($property->getName(), true)
+					->setProtected()
+					->setType('bool');
 			} else {
 				$property->setAccessible(true);
 				$class->addProperty(
 					ltrim($property->getName(), '_'),
 					$this->makeScalarValueOnly($property->getValue($packageDescriptorEntity))
-				)->setVisibility('protected');
+				)->setProtected()
+					->setType((static function (?\ReflectionType $type) {
+						if ($type instanceof \ReflectionNamedType) {
+							return $type->getName();
+						}
+
+						return null;
+					})($property->getType()));
 			}
 		}
 

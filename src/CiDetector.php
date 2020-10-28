@@ -36,8 +36,7 @@ final class CiDetector
 
 	public const CI_TRAVIS = 'Travis CI';
 
-	/** @var Env */
-	private $environment;
+	private Env $environment;
 
 
 	public function __construct()
