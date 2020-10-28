@@ -46,10 +46,9 @@ final class Helpers
 	public static function functionIsAvailable(string $functionName): bool
 	{
 		static $disabled;
-
 		if (\function_exists($functionName) === true) {
 			if ($disabled === null && \is_string($disableFunctions = ini_get('disable_functions'))) {
-				$disabled = explode(',', $disableFunctions) ?: [];
+				$disabled = explode(',', $disableFunctions);
 			}
 
 			return \in_array($functionName, $disabled, true) === false;
