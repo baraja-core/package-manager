@@ -15,7 +15,7 @@ final class PackageManagerExtension extends CompilerExtension
 	{
 		$builder = $this->getContainerBuilder();
 
-		$builder->addDefinition('baraja.packageRegistrator')
+		$builder->addDefinition($this->prefix('packageRegistrator'))
 			->setFactory(PackageRegistrator::class)
 			->setAutowired(PackageRegistrator::class);
 	}
