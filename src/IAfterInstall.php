@@ -14,10 +14,6 @@ interface IAfterInstall
 {
 	public function __construct(Container $container, PackageRegistrator $packageRegistrator);
 
-	/**
-	 * Return true if some one was changed.
-	 *
-	 * @return bool
-	 */
+	/** Return true if some one was changed. */
 	public function run(): bool;
 }
