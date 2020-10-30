@@ -107,6 +107,22 @@ class PackageRegistrator
 			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
 		}
 
+		echo 'Starting Composer post autoload dump task.' . "\n\n";
+		echo 'Server time: ' . date('Y-m-d H:i:s') . "\n";
+		if (defined('PHP_VERSION') && defined('PHP_OS')) {
+			echo 'Using PHP version: ' . PHP_VERSION . ' (' . PHP_OS . ')' . "\n";
+		}
+		if (isset($_SERVER['USER'])) {
+			echo 'User: ' . $_SERVER['USER'] . "\n";
+		}
+		if (isset($_SERVER['SCRIPT_FILENAME'])) {
+			echo 'Called by script: ' . $_SERVER['SCRIPT_FILENAME'] . "\n";
+		}
+		if (isset($_SERVER['argv'], $_SERVER['argc']) && $_SERVER['argc'] > 0) {
+			echo 'Command arguments:' . "\n";
+			echo '   - ' . implode("\n" . '   - ', $_SERVER['argv']) . "\n";
+		}
+		echo '------------------------------------------' . "\n\n";
 		self::composerRenderCiDetectorInfo();
 
 		if (isset($_SERVER['argv'][2]) === true && $_SERVER['argv'][2] === '--') {
