@@ -29,7 +29,7 @@ final class Storage
 	 */
 	public function load(): PackageDescriptorEntity
 	{
-		if (trim($path = $this->getPath()) === '' || filesize($path) < 10) {
+		if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
 			PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
 		}
 
@@ -101,16 +101,15 @@ final class Storage
 
 	private function getPath(int $ttl = 3): string
 	{
-		static $cache;
-
-		if ($cache === null) {
+		static $entityFilePath;
+		if ($entityFilePath === null) {
 			$dir = $this->basePath . '/cache/baraja/packageDescriptor';
-			$cache = $dir . '/PackageDescriptorEntity.php';
+			$entityFilePath = $dir . '/PackageDescriptorEntity.php';
 
 			try {
 				FileSystem::createDir($dir, 0777);
-				if (\is_file($cache) === false) {
-					FileSystem::write($cache, '');
+				if (\is_file($entityFilePath) === false) {
+					FileSystem::write($entityFilePath, '');
 				}
 			} catch (IOException $e) {
 				if ($ttl > 0) {
@@ -119,16 +118,23 @@ final class Storage
 					return $this->getPath($ttl - 1);
 				}
 
-				throw new \InvalidArgumentException($e->getMessage(), $e->getCode(), $e);
+				throw new \RuntimeException(
+					'Can not create PackageDescriptionEntity file: ' . $e->getMessage() . "\n"
+					. 'Package Manager tried to create a directory "' . $dir . '" and a file "' . $entityFilePath . '" inside.',
+					$e->getCode(), $e
+				);
 			}
 		}
 
-		return $cache;
+		return $entityFilePath;
 	}
 
 
 	private function tryFixTemp(string $basePath): bool
 	{
+		if (\is_dir($basePath) === false) {
+			return true;
+		}
 		foreach (Finder::find('*')->in($basePath) as $path => $value) {
 			@unlink($path);
 		}
