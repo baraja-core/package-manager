@@ -72,7 +72,7 @@ class PackageRegistrator
 				$this->createPackageConfig(self::$packageDescriptorEntity);
 			}
 		} catch (PackageDescriptorException $e) {
-			Debugger::log($e);
+			Debugger::log($e, 'critical');
 			if (PHP_SAPI === 'cli') {
 				Helpers::terminalRenderError($e->getMessage());
 			}
@@ -137,7 +137,7 @@ class PackageRegistrator
 		} catch (\Exception $e) {
 			Helpers::terminalRenderError($e->getMessage());
 			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
-			Debugger::log($e);
+			Debugger::log($e, 'critical');
 			echo 'Error was logged to file.' . "\n\n";
 		}
 	}
@@ -153,7 +153,7 @@ class PackageRegistrator
 		} catch (\Exception $e) {
 			Helpers::terminalRenderError($e->getMessage());
 			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
-			Debugger::log($e);
+			Debugger::log($e, 'critical');
 			echo 'Error was logged to file.' . "\n\n";
 			$ci = null;
 		}
