@@ -54,8 +54,7 @@ final class Storage
 			->addComment('@generated ' . ($generatedDate = date('Y-m-d H:i:s')));
 
 		$class->addConstant('GENERATED', time())
-			->setVisibility('public')
-			->addComment('@var string');
+			->setPublic();
 
 		$class->addMethod('getGeneratedDateTime')
 			->setReturnType('string')
@@ -64,10 +63,9 @@ final class Storage
 		$class->addMethod('getGeneratedDateTimestamp')
 			->setReturnType('int')
 			->setBody('static $cache;'
-				. "\n\n" . 'if ($cache !== null) {'
-				. "\n\t" . 'return $cache;'
+				. "\n\n" . 'if ($cache === null) {'
+				. "\n\t" . '$cache = (int) strtotime($this->getGeneratedDateTime());'
 				. "\n" . '}'
-				. "\n\n" . '$cache = strtotime($this->getGeneratedDateTime());'
 				. "\n\n" . 'return $cache;');
 
 		$class->addMethod('getComposerHash')
@@ -95,7 +93,12 @@ final class Storage
 			}
 		}
 
-		FileSystem::write($this->getPath(), '<?php' . "\n\n" . $class);
+		FileSystem::write(
+			$this->getPath(),
+			'<?php' . "\n\n"
+			. 'declare(strict_types=1);' . "\n\n"
+			. $class
+		);
 	}
 
 
