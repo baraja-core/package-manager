@@ -93,9 +93,7 @@ final class CiDetector
 
 	private function detectCurrentCiServer(): ?CiInterface
 	{
-		$ciServers = $this->getCiServers();
-
-		foreach ($ciServers as $ciClass) {
+		foreach ($this->getCiServers() as $ciClass) {
 			if (call_user_func([$ciClass, 'isDetected'], $this->environment)) {
 				return new $ciClass($this->environment);
 			}

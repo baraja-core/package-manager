@@ -28,7 +28,6 @@ final class Helpers
 	public static function recursiveMerge(array &$left, array &$right): array
 	{
 		$return = $left;
-
 		foreach ($right as $key => &$value) {
 			if (\is_array($value) && isset($return[$key]) && \is_array($return[$key])) {
 				$return[$key] = self::recursiveMerge($return[$key], $value);
@@ -76,11 +75,9 @@ final class Helpers
 			}
 
 			$return = [];
-
 			foreach ($input as $k => $v) {
 				$return[$k] = self::haystackToArray($v);
 			}
-
 			foreach ($reflection->getMethods() as $method) {
 				if ($method->name !== 'getReflection' && preg_match('/^(get|is)(.+)$/', $method->name, $_method)) {
 					$return[lcfirst($_method[2])] = self::haystackToArray($input->{$method->name}());
@@ -101,24 +98,24 @@ final class Helpers
 
 	/**
 	 * Render code snippet to Terminal.
-	 *
-	 * @param string $path
-	 * @param int|null $line -> if not null mark selected line by red color
 	 */
-	public static function terminalRenderCode(string $path, ?int $line = null): void
+	public static function terminalRenderCode(string $path, ?int $markLine = null): void
 	{
-		echo "\n" . $path . ($line === null ? '' : ' [on line ' . $line . ']') . "\n\n";
+		if (PHP_SAPI !== 'cli') {
+			throw new \RuntimeException('Terminal: This method is available only in CLI mode.');
+		}
+		echo "\n" . $path . ($markLine === null ? '' : ' [on line ' . $markLine . ']') . "\n\n";
 		if (\is_file($path) === true) {
 			echo '----- file -----' . "\n";
 			$fileParser = explode("\n", str_replace(["\r\n", "\r"], "\n", (string) file_get_contents($path)));
 
-			for ($i = ($start = $line > 8 ? $line - 8 : 0); $i <= $start + 15; $i++) {
+			for ($i = ($start = $markLine > 8 ? $markLine - 8 : 0); $i <= $start + 15; $i++) {
 				if (isset($fileParser[$i]) === false) {
 					break;
 				}
 
 				$currentLine = $i + 1;
-				$highlight = $line === $currentLine;
+				$highlight = $markLine === $currentLine;
 
 				echo ($highlight ? "\e[1;37m\e[41m" : "\e[100m")
 					. str_pad(' ' . $currentLine . ': ', 6, ' ') . ($highlight ? '' : "\e[0m")
@@ -143,10 +140,11 @@ final class Helpers
 	 */
 	public static function terminalInteractiveAsk(string $question, ?array $possibilities = null): ?string
 	{
+		if (PHP_SAPI !== 'cli') {
+			throw new \RuntimeException('Terminal: This method is available only in CLI mode.');
+		}
 		static $staticTtl = 0;
-
 		echo "\n" . str_repeat('-', 100) . "\n";
-
 		if ($possibilities !== [] && $possibilities !== null) {
 			$renderPossibilities = static function (array $possibilities): string {
 				$return = '';
@@ -174,13 +172,12 @@ final class Helpers
 		}
 
 		$input = ($input = trim((string) fgets($fOpen))) === '' ? null : $input;
-
 		if ($possibilities !== [] && $possibilities !== null) {
 			if (\in_array($input, $possibilities, true)) {
 				return $input;
 			}
 
-			self::terminalRenderError('!!! Invalid answer !!!');
+			self::terminalRenderError('Invalid answer!');
 			$staticTtl++;
 
 			if ($staticTtl > 16) {
@@ -194,13 +191,12 @@ final class Helpers
 	}
 
 
-	/**
-	 * Render red block with error message.
-	 *
-	 * @param string $message
-	 */
+	/** Render red block with error message. */
 	public static function terminalRenderError(string $message): void
 	{
+		if (PHP_SAPI !== 'cli') {
+			throw new \RuntimeException('Terminal: This method is available only in CLI mode.');
+		}
 		echo "\033[1;37m\033[41m" . str_repeat(' ', 100) . "\n";
 
 		foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $message)) as $line) {
@@ -222,9 +218,6 @@ final class Helpers
 	/**
 	 * Returns number of characters (not bytes) in UTF-8 string.
 	 * That is the number of Unicode code points which may differ from the number of graphemes.
-	 *
-	 * @param string $s
-	 * @return int
 	 */
 	private static function length(string $s): int
 	{

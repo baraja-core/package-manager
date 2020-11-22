@@ -31,16 +31,14 @@ final class TaskException extends PackageDescriptorException
 	 */
 	public static function canNotCopyProjectFile(string $from, string $to): void
 	{
-		$errorMessage = null;
-		static $pattern = '/\s*\[\<a[^>]+>[a-z0-9\.\-\_\(\)]+<\/a>\]\s*/i';
-
+		$return = null;
 		if (($lastError = error_get_last()) && isset($lastError['message']) === true) {
-			$errorMessage = trim((string) preg_replace($pattern, ' ', (string) $lastError['message']));
+			$return = trim((string) preg_replace('/\s*\[<a[^>]+>[a-z0-9.\-_()]+<\/a>]\s*/i', ' ', (string) $lastError['message']));
 		}
 
 		throw new self(
 			'Can not copy file "' . $from . '" => "' . $to . '"'
-			. ($errorMessage !== null ? ': ' . $errorMessage : '')
+			. ($return !== null ? ': ' . $return : '')
 		);
 	}
 }

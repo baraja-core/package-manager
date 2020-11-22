@@ -331,7 +331,7 @@ class PackageRegistrator
 			$return .= "\n" . ExtensionSorter::serializeExtenionList($extensions);
 		}
 
-		FileSystem::write(self::$configPackagePath, trim((string) preg_replace('/(\s)\[\]\-(\s)/', '$1-$2', $return)) . "\n");
+		FileSystem::write(self::$configPackagePath, trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n");
 	}
 
 

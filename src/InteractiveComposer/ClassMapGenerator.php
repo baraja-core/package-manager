@@ -21,12 +21,10 @@ final class ClassMapGenerator
 	public static function createMap(string $dir): array
 	{
 		$map = [];
-
 		foreach (new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir)) as $file) {
 			if ($file->isFile() === false) {
 				continue;
 			}
-
 			if (pathinfo($path = $file->getRealPath() ?: $file->getPathname(), PATHINFO_EXTENSION) !== 'php') {
 				continue;
 			}
