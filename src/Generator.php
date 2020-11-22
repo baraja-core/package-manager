@@ -25,7 +25,7 @@ final class Generator
 	 * @internal
 	 * @throws PackageDescriptorException
 	 */
-	public function run(): PackageDescriptorEntity
+	public function run(): PackageDescriptorEntityInterface
 	{
 		$packageDescriptor = new PackageDescriptorEntity;
 
