@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Nette\Neon\Neon;
-
 final class ExtensionSorter
 {
 	public const TRY_SORT_TTL = 3;
@@ -20,13 +18,22 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string[]|\stdClass[] $extensions
+	 * @param string[]|\stdClass[]|mixed[] $extensions
 	 */
-	public static function serializeExtenionList(array $extensions): string
+	public static function serializeExtensionList(array $extensions): string
 	{
 		$items = [];
 		foreach ($extensions as $key => $definition) {
-			if (class_exists($type = \is_object($definition) && isset($definition->value) ? $definition->value : (string) $definition) === false) {
+			if (\is_string($definition)) {
+				$type = $definition;
+			} elseif (\is_object($definition) && isset($definition->value)) {
+				$type = (string) $definition->value;
+			} elseif (\is_array($definition) && isset($definition['value'])) {
+				$type = (string) $definition['value'];
+			} else {
+				throw new \InvalidArgumentException('Definition type must be string, object or array, but "' . \gettype($definition) . '" given.');
+			}
+			if (class_exists($type) === false) {
 				throw new \RuntimeException(
 					'Package manager: Extension "' . $type . '" does not exist. Did you use autoload correctly?' . "\n"
 					. 'Hint: Try read article about autoloading: https://php.baraja.cz/autoloading-trid'
@@ -44,7 +51,7 @@ final class ExtensionSorter
 
 		$return = '';
 		foreach (self::sortCandidatesByConditions($items) as $item) {
-			$return .= "\t" . $item['key'] . ': ' . trim(Neon::encode($item['definition'], Neon::BLOCK)) . "\n";
+			$return .= "\t" . $item['key'] . ': ' . self::encodeExtensionDefinition($item['definition']) . "\n";
 		}
 
 		return 'extensions:' . "\n" . $return;
@@ -208,5 +215,22 @@ final class ExtensionSorter
 		}
 
 		return $return;
+	}
+
+
+	/**
+	 * @param string|mixed[]|\stdClass[] $definition
+	 */
+	private static function encodeExtensionDefinition($definition): string
+	{
+		if (\is_string($definition)) {
+			return $definition;
+		}
+		$definition = (array) $definition;
+		if (isset($definition['value'], $definition['attributes'])) {
+			return $definition['value'] . '(' . implode(', ', $definition['attributes']) . ')';
+		}
+
+		throw new \InvalidArgumentException('Extension definition is not valid DIC definition.' . "\n\n" . json_encode($definition));
 	}
 }
