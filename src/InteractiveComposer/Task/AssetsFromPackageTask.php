@@ -6,17 +6,12 @@ namespace Baraja\PackageManager\Composer;
 
 
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
-use Baraja\PackageManager\Exception\TaskException;
 
 /**
  * Priority: 200
  */
 final class AssetsFromPackageTask extends BaseTask
 {
-
-	/**
-	 * @throws TaskException
-	 */
 	public function run(): bool
 	{
 		try {
@@ -50,9 +45,6 @@ final class AssetsFromPackageTask extends BaseTask
 	}
 
 
-	/**
-	 * @throws TaskException
-	 */
 	private function processPackage(string $path, string $basePath): void
 	{
 		$this->copyInstallDir($path . 'install/', \rtrim(\dirname($basePath), '/') . '/');
@@ -60,9 +52,6 @@ final class AssetsFromPackageTask extends BaseTask
 	}
 
 
-	/**
-	 * @throws TaskException
-	 */
 	private function copyInstallDir(string $source, string $projectRoot, bool $forceUpdate = false): bool
 	{
 		if (\is_dir($source) === false) {
@@ -79,9 +68,6 @@ final class AssetsFromPackageTask extends BaseTask
 	}
 
 
-	/**
-	 * @throws TaskException
-	 */
 	private function copyFilesRecursively(string $basePath, string $path, string $projectRoot, bool $forceUpdate): void
 	{
 		foreach (scandir(rtrim(preg_replace('/\/+/', '/', $basePath . '/' . $path), '/'), 1) as $file) {
@@ -93,7 +79,7 @@ final class AssetsFromPackageTask extends BaseTask
 					if (\is_dir($projectFilePath) || \mkdir($projectFilePath, 0777, true)) {
 						echo '.';
 					} else {
-						TaskException::canNotCreateProjectDirectory($projectFilePath);
+						throw new \RuntimeException('Can not create directory "' . $projectFilePath . '".');
 					}
 
 					$this->copyFilesRecursively($basePath, $pathWithFile, $projectRoot, $forceUpdate);
@@ -108,7 +94,7 @@ final class AssetsFromPackageTask extends BaseTask
 					if ($safeCopy === null || $safeCopy === true) {
 						echo '.';
 					} else {
-						TaskException::canNotCopyFile($basePath . '/' . $pathWithFile);
+						throw new \RuntimeException('Can not copy "' . $path . '".');
 					}
 				}
 			}
@@ -119,8 +105,6 @@ final class AssetsFromPackageTask extends BaseTask
 	/**
 	 * Copy file with exactly content or throw exception.
 	 * If case of error try repeat copy 3 times by $ttl.
-	 *
-	 * @throws TaskException
 	 */
 	private function safeCopy(string $from, string $to, int $ttl = 3): ?bool
 	{
@@ -134,7 +118,15 @@ final class AssetsFromPackageTask extends BaseTask
 				return $this->safeCopy($from, $to, $ttl - 1);
 			}
 
-			TaskException::canNotCopyProjectFile($from, $to);
+			$return = null;
+			if (($lastError = error_get_last()) && isset($lastError['message']) === true) {
+				$return = trim((string) preg_replace('/\s*\[<a[^>]+>[a-z0-9.\-_()]+<\/a>]\s*/i', ' ', (string) $lastError['message']));
+			}
+
+			throw new \RuntimeException(
+				'Can not copy file "' . $from . '" => "' . $to . '"'
+				. ($return !== null ? ': ' . $return : '')
+			);
 		}
 
 		return $copy;
