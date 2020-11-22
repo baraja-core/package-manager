@@ -34,8 +34,12 @@ final class Storage
 			require_once $path;
 			$loaded = true;
 		}
+		/** @var string $class class-string */
 		$class = '\PackageDescriptorEntity';
 		try {
+			if (!class_exists($class)) {
+				throw new \RuntimeException('Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.');
+			}
 			$ref = new \ReflectionClass($class);
 		} catch (\ReflectionException $e) {
 			throw new \LogicException('Package description entity does not exist, because class "' . $class . '" does not exist.');
