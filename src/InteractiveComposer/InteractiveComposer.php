@@ -7,7 +7,6 @@ namespace Baraja\PackageManager;
 
 use Baraja\PackageManager\Composer\CompanyIdentity;
 use Baraja\PackageManager\Composer\ITask;
-use Baraja\PackageManager\Exception\TaskException;
 use Tracy\Debugger;
 
 final class InteractiveComposer
@@ -41,7 +40,7 @@ final class InteractiveComposer
 					echo "\n\n";
 					die;
 				}
-			} catch (TaskException | \RuntimeException $e) {
+			} catch (\RuntimeException $e) {
 				echo "\n\n";
 				Helpers::terminalRenderError('Task "' . $taskClass . '" failed!' . "\n\n" . $e->getMessage());
 				if (\class_exists(Debugger::class) === true) {
