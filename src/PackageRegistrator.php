@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Composer\Autoload\ClassLoader;
 use Nette\Utils\FileSystem;
@@ -22,8 +21,6 @@ class PackageRegistrator
 	private static string $configLocalPath;
 
 	private static PackageDescriptorEntityInterface $packageDescriptorEntity;
-
-	private static Storage $storage;
 
 	private static bool $configurationMode = false;
 
@@ -62,9 +59,9 @@ class PackageRegistrator
 		self::$configPath = self::$projectRoot . '/app/config/common.neon';
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
-		self::$storage = new Storage($tempPath, $projectRoot, self::$configPackagePath, self::$configLocalPath);
+		$storage = new Storage($tempPath, $projectRoot, self::$configPackagePath, self::$configLocalPath);
 		try {
-			self::$packageDescriptorEntity = self::$storage->load();
+			self::$packageDescriptorEntity = $storage->load();
 		} catch (PackageDescriptorException $e) {
 			Debugger::log($e, 'critical');
 			if (PHP_SAPI === 'cli') {
@@ -197,32 +194,5 @@ class PackageRegistrator
 	public function getPackageDescriptorEntity(): PackageDescriptorEntityInterface
 	{
 		return self::$packageDescriptorEntity;
-	}
-
-
-	/**
-	 * @throws PackageDescriptorException
-	 */
-	public function getConfig(): string
-	{
-		self::$storage->createPackageConfig(self::$packageDescriptorEntity);
-
-		return (string) file_get_contents(self::$configPackagePath);
-	}
-
-
-	/**
-	 * @throws PackageDescriptorCompileException
-	 * @internal please use DIC, this is for legacy support only!
-	 */
-	public function isPackageInstalled(string $packageName): bool
-	{
-		foreach (self::$packageDescriptorEntity->getPackagest() as $package) {
-			if ($package->getName() === $packageName) {
-				return true;
-			}
-		}
-
-		return false;
 	}
 }
