@@ -7,7 +7,6 @@ namespace Baraja\PackageManager;
 
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
-use Baraja\PackageManager\Exception\PackageEntityDoesNotExistsException;
 use Composer\Autoload\ClassLoader;
 use Nette\Neon\Entity;
 use Nette\Neon\Neon;
@@ -24,7 +23,7 @@ class PackageRegistrator
 
 	private static string $configLocalPath;
 
-	private static PackageDescriptorEntity $packageDescriptorEntity;
+	private static PackageDescriptorEntityInterface $packageDescriptorEntity;
 
 	private static bool $configurationMode = false;
 
@@ -65,14 +64,7 @@ class PackageRegistrator
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
 
 		try {
-			$storage = new Storage($tempPath);
-			try {
-				self::$packageDescriptorEntity = $storage->load();
-
-				if ($this->isCacheExpired(self::$packageDescriptorEntity)) {
-					throw new PackageEntityDoesNotExistsException('Cache expired');
-				}
-			} catch (PackageEntityDoesNotExistsException $e) {
+			if ($this->isCacheExpired(self::$packageDescriptorEntity = ($storage = new Storage($tempPath))->load())) {
 				$storage->save(
 					self::$packageDescriptorEntity = (new Generator($projectRoot))->run(),
 					$this->getComposerHash()
@@ -81,7 +73,9 @@ class PackageRegistrator
 			}
 		} catch (PackageDescriptorException $e) {
 			Debugger::log($e);
-			Helpers::terminalRenderError($e->getMessage());
+			if (PHP_SAPI === 'cli') {
+				Helpers::terminalRenderError($e->getMessage());
+			}
 		}
 	}
 
@@ -194,7 +188,7 @@ class PackageRegistrator
 	}
 
 
-	public static function getPackageDescriptorEntityStatic(): PackageDescriptorEntity
+	public static function getPackageDescriptorEntityStatic(): PackageDescriptorEntityInterface
 	{
 		return self::$packageDescriptorEntity;
 	}
@@ -206,7 +200,7 @@ class PackageRegistrator
 	}
 
 
-	public function getPackageDescriptorEntity(): PackageDescriptorEntity
+	public function getPackageDescriptorEntity(): PackageDescriptorEntityInterface
 	{
 		return self::$packageDescriptorEntity;
 	}
@@ -226,8 +220,8 @@ class PackageRegistrator
 
 
 	/**
-	 * @internal please use DIC, this is for legacy support only!
 	 * @throws PackageDescriptorCompileException
+	 * @internal please use DIC, this is for legacy support only!
 	 */
 	public function isPackageInstalled(string $packageName): bool
 	{
@@ -244,11 +238,11 @@ class PackageRegistrator
 	/**
 	 * @throws PackageDescriptorException
 	 */
-	private function createPackageConfig(PackageDescriptorEntity $packageDescriptorEntity): void
+	private function createPackageConfig(PackageDescriptorEntityInterface $descriptor): void
 	{
 		$extensions = [];
 		$neon = [];
-		foreach ($packageDescriptorEntity->getPackagest() as $package) {
+		foreach ($descriptor->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
 					foreach ($value['data'] ?? [] as $extensionName => $extensionType) {
@@ -341,12 +335,12 @@ class PackageRegistrator
 	}
 
 
-	private function isCacheExpired(PackageDescriptorEntity $packageDescriptorEntity): bool
+	private function isCacheExpired(PackageDescriptorEntityInterface $descriptor): bool
 	{
 		if (!is_file(self::$configPackagePath) || !is_file(self::$configLocalPath)) {
 			return true;
 		}
-		if ($packageDescriptorEntity->getComposerHash() !== $this->getComposerHash()) {
+		if ($descriptor->getComposerHash() !== $this->getComposerHash()) {
 			return true;
 		}
 

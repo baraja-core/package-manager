@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Baraja\PackageManager\Exception\PackageDescriptorException;
-use Baraja\PackageManager\Exception\PackageEntityDoesNotExistsException;
 use Nette\IOException;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\FileSystem;
@@ -24,26 +22,32 @@ final class Storage
 
 
 	/**
-	 * @throws PackageEntityDoesNotExistsException|PackageDescriptorException
 	 * @internal
 	 */
-	public function load(): PackageDescriptorEntity
+	public function load(): PackageDescriptorEntityInterface
 	{
-		if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
-			PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
+		static $loaded = false;
+		if ($loaded === false) {
+			if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
+				throw new \LogicException('Package description entity does not exist, because file "' . $path . '" does not exist.');
+			}
+			require_once $path;
+			$loaded = true;
+		}
+		try {
+			$ref = new \ReflectionClass($class = '\PackageDescriptorEntity');
+		} catch (\ReflectionException $e) {
+			throw new \LogicException('Package description entity does not exist, because class "' . $class . '" does not exist.');
 		}
 
-		require_once $path;
+		/** @var PackageDescriptorEntityInterface $service */
+		$service = $ref->newInstance();
 
-		if (\class_exists('\PackageDescriptorEntity') === false) {
-			PackageEntityDoesNotExistsException::packageDescriptionEntityDoesNotExist();
-		}
-
-		return new \PackageDescriptorEntity;
+		return $service;
 	}
 
 
-	public function save(PackageDescriptorEntity $packageDescriptorEntity, ?string $composerHash = null): void
+	public function save(PackageDescriptorEntityInterface $packageDescriptorEntity, ?string $composerHash = null): void
 	{
 		$class = new ClassType('PackageDescriptorEntity');
 

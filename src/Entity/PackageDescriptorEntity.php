@@ -10,7 +10,7 @@ use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 /**
  * @internal
  */
-class PackageDescriptorEntity
+class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 {
 	protected bool $__close = false;
 
@@ -64,10 +64,9 @@ class PackageDescriptorEntity
 	 * @return Package[]
 	 * @throws PackageDescriptorCompileException
 	 */
-	public function getPackagest(?bool $customPackagesOnly = null): array
+	public function getPackagest(): array
 	{
 		$return = [];
-
 		foreach ($this->packagest as $package) {
 			if ($package['composer'] === null) {
 				PackageDescriptorCompileException::composerJsonIsBroken($package['name']);
