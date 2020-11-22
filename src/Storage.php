@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
+use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Nette\IOException;
+use Nette\Neon\Entity;
+use Nette\Neon\Neon;
 use Nette\PhpGenerator\ClassType;
 use Nette\Utils\FileSystem;
 use Nette\Utils\Finder;
@@ -14,45 +17,163 @@ final class Storage
 {
 	private string $basePath;
 
+	private string $configPackagePath;
 
-	public function __construct(string $basePath)
+	private string $configLocalPath;
+
+	private string $composerHash;
+
+	private Generator $generator;
+
+	private ?PackageDescriptorEntityInterface $descriptor = null;
+
+
+	public function __construct(string $basePath, string $projectRoot, string $configPackagePath, string $configLocalPath)
 	{
 		$this->basePath = $basePath;
+		$this->configPackagePath = $configPackagePath;
+		$this->configLocalPath = $configLocalPath;
+		$this->composerHash = (@md5_file($projectRoot . '/vendor/composer/installed.json')) ?: md5((string) time());
+		$this->generator = new Generator($projectRoot);
+	}
+
+
+	public function load(): PackageDescriptorEntityInterface
+	{
+		if ($this->descriptor === null) {
+			if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
+				$this->descriptor = $this->save();
+			}
+			require_once $path;
+			/** @var string $class class-string */
+			$class = '\PackageDescriptorEntity';
+			try {
+				if (!class_exists($class)) {
+					throw new \RuntimeException('Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.');
+				}
+				$ref = new \ReflectionClass($class);
+			} catch (\ReflectionException $e) {
+				throw new \LogicException('Package description entity does not exist, because class "' . $class . '" does not exist.');
+			}
+
+			/** @var PackageDescriptorEntityInterface $service */
+			$service = $ref->newInstance();
+			$this->descriptor = $service;
+		} elseif ($this->isCacheExpired($this->descriptor)) {
+			$this->descriptor = $this->save();
+		}
+
+		$this->createPackageConfig($this->descriptor);
+
+		return $this->descriptor;
 	}
 
 
 	/**
-	 * @internal
+	 * @throws PackageDescriptorException
 	 */
-	public function load(): PackageDescriptorEntityInterface
+	public function createPackageConfig(PackageDescriptorEntityInterface $descriptor): void
 	{
-		static $loaded = false;
-		if ($loaded === false) {
-			if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
-				throw new \LogicException('Package description entity does not exist, because file "' . $path . '" does not exist.');
-			}
-			require_once $path;
-			$loaded = true;
-		}
-		/** @var string $class class-string */
-		$class = '\PackageDescriptorEntity';
-		try {
-			if (!class_exists($class)) {
-				throw new \RuntimeException('Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.');
-			}
-			$ref = new \ReflectionClass($class);
-		} catch (\ReflectionException $e) {
-			throw new \LogicException('Package description entity does not exist, because class "' . $class . '" does not exist.');
+		if (is_file($this->configPackagePath) === true) {
+			return;
 		}
 
-		/** @var PackageDescriptorEntityInterface $service */
-		$service = $ref->newInstance();
+		$extensions = [];
+		$neon = [];
+		foreach ($descriptor->getPackagest() as $package) {
+			foreach ($package->getConfig() as $param => $value) {
+				if ($param === 'extensions') {
+					foreach ($value['data'] ?? [] as $extensionName => $extensionType) {
+						$extensions[$extensionName] = $extensionType;
+					}
+				} elseif ($param !== 'includes') {
+					$neon[$param][] = [
+						'name' => $package->getName(),
+						'version' => $package->getVersion(),
+						'data' => $value,
+					];
+				}
+			}
+		}
 
-		return $service;
+		$return = '';
+		$anonymousServiceCounter = 0;
+		$neonKeys = array_keys($neon);
+		sort($neonKeys);
+		foreach ($neonKeys as $neonKey) {
+			$packageInfos = $neon[$neonKey];
+			$return .= "\n" . $neonKey . ':' . "\n\t";
+			$tree = [];
+			foreach ($packageInfos as $packageInfo) {
+				$neonData = \is_array($packageData = $packageInfo['data']['data'] ?? $packageInfo['data']) ? $packageData : Neon::decode($packageData);
+				foreach ($neonData as $treeKey => $treeValue) {
+					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
+						unset($neonData[$treeKey]);
+						$neonData['helperKey_' . $anonymousServiceCounter] = $treeValue;
+						$anonymousServiceCounter++;
+					}
+				}
+				$tree = Helpers::recursiveMerge($tree, $neonData);
+			}
+
+			$treeNumbers = [];
+			$treeOthers = [];
+			foreach ($tree as $treeKey => $treeValue) {
+				if (preg_match('/^helperKey_\d+$/', $treeKey)) {
+					$treeNumbers[] = $treeValue;
+				} else {
+					$treeOthers[$treeKey] = $treeValue;
+				}
+			}
+
+			ksort($treeOthers);
+
+			usort($treeNumbers, function ($left, $right): int {
+				$score = static function ($item): int {
+					if (\is_string($item)) {
+						return 1;
+					}
+
+					$array = [];
+					$score = 0;
+					if (\is_iterable($item)) {
+						$score = 2;
+					}
+					if ($item instanceof Entity) {
+						$array = (array) $item->value;
+						$score += 3;
+					}
+					if (isset($array['factory']) === true) {
+						return $score + 1;
+					}
+
+					return $score;
+				};
+
+				if (($a = $score($left)) > ($b = $score($right))) {
+					return -1;
+				}
+
+				return $a === $b ? 0 : 1;
+			});
+
+			if ($treeOthers !== []) {
+				$return .= str_replace("\n", "\n\t", Neon::encode($treeOthers, Neon::BLOCK));
+			}
+			if ($treeNumbers !== []) {
+				$return .= str_replace("\n", "\n\t", Neon::encode($treeNumbers, Neon::BLOCK));
+			}
+			$return = trim($return) . "\n";
+		}
+		if ($extensions !== []) {
+			$return .= "\n" . ExtensionSorter::serializeExtensionList($extensions);
+		}
+
+		FileSystem::write($this->configPackagePath, trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n");
 	}
 
 
-	public function save(PackageDescriptorEntityInterface $packageDescriptorEntity, ?string $composerHash = null): void
+	private function save(): PackageDescriptorEntityInterface
 	{
 		$class = new ClassType('PackageDescriptorEntity');
 
@@ -79,8 +200,9 @@ final class Storage
 
 		$class->addMethod('getComposerHash')
 			->setReturnType('string')
-			->setBody('return \'' . ($composerHash ?? '') . '\';');
+			->setBody('return \'' . $this->composerHash . '\';');
 
+		$packageDescriptorEntity = $this->generator->run();
 		foreach ((new \ReflectionObject($packageDescriptorEntity))->getProperties() as $property) {
 			if ($property->getName() === '__close') {
 				$class->addProperty($property->getName(), true)
@@ -108,6 +230,21 @@ final class Storage
 			. 'declare(strict_types=1);' . "\n\n"
 			. $class
 		);
+
+		return $packageDescriptorEntity;
+	}
+
+
+	private function isCacheExpired(PackageDescriptorEntityInterface $descriptor): bool
+	{
+		if (!is_file($this->configPackagePath) || !is_file($this->configLocalPath)) {
+			return true;
+		}
+		if ($descriptor->getComposerHash() !== $this->composerHash) {
+			return true;
+		}
+
+		return false;
 	}
 
 

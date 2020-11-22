@@ -8,8 +8,6 @@ namespace Baraja\PackageManager;
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Composer\Autoload\ClassLoader;
-use Nette\Neon\Entity;
-use Nette\Neon\Neon;
 use Nette\Utils\FileSystem;
 use Tracy\Debugger;
 
@@ -24,6 +22,8 @@ class PackageRegistrator
 	private static string $configLocalPath;
 
 	private static PackageDescriptorEntityInterface $packageDescriptorEntity;
+
+	private static Storage $storage;
 
 	private static bool $configurationMode = false;
 
@@ -62,15 +62,9 @@ class PackageRegistrator
 		self::$configPath = self::$projectRoot . '/app/config/common.neon';
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
-
+		self::$storage = new Storage($tempPath, $projectRoot, self::$configPackagePath, self::$configLocalPath);
 		try {
-			if ($this->isCacheExpired(self::$packageDescriptorEntity = ($storage = new Storage($tempPath))->load())) {
-				$storage->save(
-					self::$packageDescriptorEntity = (new Generator($projectRoot))->run(),
-					$this->getComposerHash()
-				);
-				$this->createPackageConfig(self::$packageDescriptorEntity);
-			}
+			self::$packageDescriptorEntity = self::$storage->load();
 		} catch (PackageDescriptorException $e) {
 			Debugger::log($e, 'critical');
 			if (PHP_SAPI === 'cli') {
@@ -211,9 +205,7 @@ class PackageRegistrator
 	 */
 	public function getConfig(): string
 	{
-		if (!is_file(self::$configPackagePath)) {
-			$this->createPackageConfig($this->getPackageDescriptorEntity());
-		}
+		self::$storage->createPackageConfig(self::$packageDescriptorEntity);
 
 		return (string) file_get_contents(self::$configPackagePath);
 	}
@@ -232,132 +224,5 @@ class PackageRegistrator
 		}
 
 		return false;
-	}
-
-
-	/**
-	 * @throws PackageDescriptorException
-	 */
-	private function createPackageConfig(PackageDescriptorEntityInterface $descriptor): void
-	{
-		$extensions = [];
-		$neon = [];
-		foreach ($descriptor->getPackagest() as $package) {
-			foreach ($package->getConfig() as $param => $value) {
-				if ($param === 'extensions') {
-					foreach ($value['data'] ?? [] as $extensionName => $extensionType) {
-						$extensions[$extensionName] = $extensionType;
-					}
-				} elseif ($param !== 'includes') {
-					$neon[$param][] = [
-						'name' => $package->getName(),
-						'version' => $package->getVersion(),
-						'data' => $value,
-					];
-				}
-			}
-		}
-
-		$return = '';
-		$anonymousServiceCounter = 0;
-		$neonKeys = array_keys($neon);
-		sort($neonKeys);
-		foreach ($neonKeys as $neonKey) {
-			$packageInfos = $neon[$neonKey];
-			$return .= "\n" . $neonKey . ':' . "\n\t";
-			$tree = [];
-			foreach ($packageInfos as $packageInfo) {
-				$neonData = \is_array($packageData = $packageInfo['data']['data'] ?? $packageInfo['data']) ? $packageData : Neon::decode($packageData);
-				foreach ($neonData as $treeKey => $treeValue) {
-					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
-						unset($neonData[$treeKey]);
-						$neonData['helperKey_' . $anonymousServiceCounter] = $treeValue;
-						$anonymousServiceCounter++;
-					}
-				}
-				$tree = Helpers::recursiveMerge($tree, $neonData);
-			}
-
-			$treeNumbers = [];
-			$treeOthers = [];
-			foreach ($tree as $treeKey => $treeValue) {
-				if (preg_match('/^helperKey_\d+$/', $treeKey)) {
-					$treeNumbers[] = $treeValue;
-				} else {
-					$treeOthers[$treeKey] = $treeValue;
-				}
-			}
-
-			ksort($treeOthers);
-
-			usort($treeNumbers, function ($left, $right): int {
-				$score = static function ($item): int {
-					if (\is_string($item)) {
-						return 1;
-					}
-
-					$array = [];
-					$score = 0;
-					if (\is_iterable($item)) {
-						$score = 2;
-					}
-					if ($item instanceof Entity) {
-						$array = (array) $item->value;
-						$score += 3;
-					}
-					if (isset($array['factory']) === true) {
-						return $score + 1;
-					}
-
-					return $score;
-				};
-
-				if (($a = $score($left)) > ($b = $score($right))) {
-					return -1;
-				}
-
-				return $a === $b ? 0 : 1;
-			});
-
-			if ($treeOthers !== []) {
-				$return .= str_replace("\n", "\n\t", Neon::encode($treeOthers, Neon::BLOCK));
-			}
-			if ($treeNumbers !== []) {
-				$return .= str_replace("\n", "\n\t", Neon::encode($treeNumbers, Neon::BLOCK));
-			}
-			$return = trim($return) . "\n";
-		}
-		if ($extensions !== []) {
-			$return .= "\n" . ExtensionSorter::serializeExtenionList($extensions);
-		}
-
-		FileSystem::write(self::$configPackagePath, trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n");
-	}
-
-
-	private function isCacheExpired(PackageDescriptorEntityInterface $descriptor): bool
-	{
-		if (!is_file(self::$configPackagePath) || !is_file(self::$configLocalPath)) {
-			return true;
-		}
-		if ($descriptor->getComposerHash() !== $this->getComposerHash()) {
-			return true;
-		}
-
-		return false;
-	}
-
-
-	/**
-	 * Return hash of installed.json, if composer does not used, return empty string.
-	 */
-	private function getComposerHash(): string
-	{
-		static $cache;
-		if ($cache === null) {
-			$cache = (@md5_file(self::$projectRoot . '/vendor/composer/installed.json')) ?: md5((string) time());
-		}
-
-		return $cache;
 	}
 }
