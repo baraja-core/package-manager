@@ -51,8 +51,6 @@ final class AssetsFromPackageTask extends BaseTask
 
 
 	/**
-	 * @param string $path
-	 * @param string $basePath
 	 * @throws TaskException
 	 */
 	private function processPackage(string $path, string $basePath): void
@@ -63,10 +61,6 @@ final class AssetsFromPackageTask extends BaseTask
 
 
 	/**
-	 * @param string $source
-	 * @param string $projectRoot
-	 * @param bool $forceUpdate
-	 * @return bool
 	 * @throws TaskException
 	 */
 	private function copyInstallDir(string $source, string $projectRoot, bool $forceUpdate = false): bool
@@ -86,10 +80,6 @@ final class AssetsFromPackageTask extends BaseTask
 
 
 	/**
-	 * @param string $basePath
-	 * @param string $path
-	 * @param string $projectRoot
-	 * @param bool $forceUpdate
 	 * @throws TaskException
 	 */
 	private function copyFilesRecursively(string $basePath, string $path, string $projectRoot, bool $forceUpdate): void
@@ -130,10 +120,6 @@ final class AssetsFromPackageTask extends BaseTask
 	 * Copy file with exactly content or throw exception.
 	 * If case of error try repeat copy 3 times by $ttl.
 	 *
-	 * @param string $from
-	 * @param string $to
-	 * @param int $ttl
-	 * @return bool|null
 	 * @throws TaskException
 	 */
 	private function safeCopy(string $from, string $to, int $ttl = 3): ?bool
@@ -141,7 +127,6 @@ final class AssetsFromPackageTask extends BaseTask
 		if (($fromHash = md5_file($from)) === (file_exists($to) ? md5_file($to) : null)) {
 			return null;
 		}
-
 		if (($copy = copy($from, $to)) === false || md5_file($to) !== $fromHash) {
 			if ($ttl > 0) {
 				clearstatcache();

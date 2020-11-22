@@ -73,7 +73,6 @@ final class InteractiveComposer
 			if (\is_string($className) === false) {
 				throw new \RuntimeException('Class name must be type of string, but type "' . \gettype($className) . '" given.');
 			}
-
 			if (preg_match('/^[A-Z0-9].*Task$/', $className)) {
 				try {
 					$ref = new \ReflectionClass($className);
@@ -86,7 +85,6 @@ final class InteractiveComposer
 				} catch (\ReflectionException $e) {
 				}
 			}
-
 			if (preg_match('/^[A-Z0-9].*Identity/', $className)) {
 				try {
 					$ref = new \ReflectionClass($className);

@@ -20,13 +20,12 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string[]|\stdClass[] $extenions
-	 * @return string
+	 * @param string[]|\stdClass[] $extensions
 	 */
-	public static function serializeExtenionList(array $extenions): string
+	public static function serializeExtenionList(array $extensions): string
 	{
 		$items = [];
-		foreach ($extenions as $key => $definition) {
+		foreach ($extensions as $key => $definition) {
 			if (class_exists($type = \is_object($definition) && isset($definition->value) ? $definition->value : (string) $definition) === false) {
 				throw new \RuntimeException(
 					'Package manager: Extension "' . $type . '" does not exist. Did you use autoload correctly?' . "\n"
@@ -135,7 +134,6 @@ final class ExtensionSorter
 	 * @param mixed[] $item
 	 * @param mixed[][] $items
 	 * @param string[] $registered
-	 * @return bool
 	 */
 	private static function canBeItemAddedHere(array $item, int $position, array $items, array $registered): bool
 	{
@@ -173,7 +171,6 @@ final class ExtensionSorter
 
 	/**
 	 * @param mixed[][] $finalArray
-	 * @param int $key
 	 * @param mixed[] $inserted
 	 * @return mixed[][]
 	 */

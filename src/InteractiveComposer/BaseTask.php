@@ -22,9 +22,7 @@ abstract class BaseTask implements ITask
 
 
 	/**
-	 * @param string $question
 	 * @param string[] $possibilities
-	 * @return string|null
 	 */
 	public function ask(string $question, array $possibilities = []): ?string
 	{
@@ -37,8 +35,6 @@ abstract class BaseTask implements ITask
 	 * This container is same for all tasks.
 	 *
 	 * Warning: When you boot application, you can not modify configuration neon data.
-	 *
-	 * @return Container
 	 */
 	final public function getContainer(): Container
 	{

@@ -25,9 +25,6 @@ final class Package
 
 
 	/**
-	 * @param string $name
-	 * @param string|null $version
-	 * @param string $dependency
 	 * @param string[][]|mixed[][][] $config
 	 * @param mixed[] $composer
 	 */

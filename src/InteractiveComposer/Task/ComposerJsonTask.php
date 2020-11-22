@@ -19,7 +19,6 @@ final class ComposerJsonTask extends BaseTask
 {
 
 	/**
-	 * @return bool
 	 * @throws JsonException
 	 * @throws PackageDescriptorCompileException
 	 */
@@ -45,7 +44,6 @@ final class ComposerJsonTask extends BaseTask
 				$require[$ext] = '*';
 			}
 		}
-
 		foreach ($require as $dependency => $version) {
 			if (Strings::startsWith($dependency, 'baraja-')
 				&& preg_match('/^\D+(?<mainVersion>\d+)\./', $version, $versionParser)
@@ -78,7 +76,6 @@ final class ComposerJsonTask extends BaseTask
 	private function getPackageExtensions(): array
 	{
 		$return = [];
-
 		foreach ($this->packageRegistrator->getPackageDescriptorEntity()->getPackagest() as $package) {
 			$path = $this->packageRegistrator->getProjectRoot() . '/vendor/' . $package->getName() . '/composer.json';
 			$composer = is_file($path) ? Json::decode(FileSystem::read($path), Json::FORCE_ARRAY) : [];

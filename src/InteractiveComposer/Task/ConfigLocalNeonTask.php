@@ -40,9 +40,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	 *
 	 * 1. Check if local.neon exist
 	 * 2. In case of CI environment generate default content
-	 * 3. In other cases as user for configuration data
-	 *
-	 * @return bool
+	 * 3. In other cases as user for configuration data.
 	 */
 	public function run(): bool
 	{
@@ -114,11 +112,9 @@ final class ConfigLocalNeonTask extends BaseTask
 				$candidateDatabases[] = $database[0];
 			}
 		}
-
 		if (\count($candidateDatabases) === 1) {
 			$usedDatabase = $candidateDatabases[0];
 		}
-
 		while (true) {
 			if ($usedDatabase === null && preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')) {
 				if (isset($databaseList[$usedDatabaseKey = (int) $usedDatabase])) {
@@ -128,14 +124,12 @@ final class ConfigLocalNeonTask extends BaseTask
 
 				echo 'Selection "' . $usedDatabase . '" is out of range.' . "\n";
 			}
-
 			if (\in_array($usedDatabase, $databaseList, true)) {
 				break;
 			}
-
 			if (strtolower($usedDatabase) === 'new') {
 				while (true) {
-					if (preg_match('/^[a-z0-9\_\-]+$/', $usedDatabase = $this->ask('How is the database name?'))) {
+					if (preg_match('/^[a-z0-9_\-]+$/', $usedDatabase = $this->ask('How is the database name?'))) {
 						if (!\in_array($usedDatabase, $databaseList, true)) {
 							$this->createDatabase($usedDatabase, $connection);
 							break;
@@ -149,8 +143,7 @@ final class ConfigLocalNeonTask extends BaseTask
 				}
 				break;
 			}
-
-			if (preg_match('/^[a-zA-Z0-9\_\-]+$/', $usedDatabase)) {
+			if (preg_match('/^[a-zA-Z0-9_\-]+$/', $usedDatabase)) {
 				$useHint = false;
 				foreach ($databaseList as $possibleDatabase) {
 					if (strncmp($possibleDatabase, $usedDatabase, strlen($usedDatabase)) === 0) {
@@ -162,13 +155,10 @@ final class ConfigLocalNeonTask extends BaseTask
 						}
 					}
 				}
-
 				if ($useHint === true) {
 					break;
 				}
-
 				echo 'Database "' . $usedDatabase . '" does not exist.' . "\n";
-
 				if ($this->ask('Create database "' . ($newDatabaseName = strtolower($usedDatabase)) . '"?', ['y', 'n']) === 'y') {
 					$this->createDatabase($newDatabaseName, $connection);
 					break;
