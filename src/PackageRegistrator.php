@@ -124,6 +124,7 @@ class PackageRegistrator
 		}
 
 		try {
+			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
 			(new InteractiveComposer(new self))->run();
 		} catch (\Exception $e) {
 			Helpers::terminalRenderError($e->getMessage());
