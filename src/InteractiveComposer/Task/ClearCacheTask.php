@@ -13,11 +13,6 @@ use Nette\Utils\FileSystem;
  */
 final class ClearCacheTask extends BaseTask
 {
-
-	/** @var string[] */
-	public array $tempDirectories = ['proxies'];
-
-
 	public function run(): bool
 	{
 		if (Helpers::functionIsAvailable('opcache_reset')) {
@@ -25,16 +20,8 @@ final class ClearCacheTask extends BaseTask
 		}
 
 		$tempPath = \dirname(__DIR__, 6) . '/temp';
-		if (is_file($unlinkPath = $tempPath . '/_packageDescriptor/PackageDescriptorEntity.php') === true) {
-			unlink($unlinkPath);
-		}
-
 		echo 'Path: ' . $tempPath;
-
 		FileSystem::delete($tempPath);
-		foreach ($this->tempDirectories ?? [] as $tempDirectory) {
-			FileSystem::delete($tempPath . '/' . $tempDirectory);
-		}
 
 		return true;
 	}
