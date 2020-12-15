@@ -22,8 +22,8 @@ final class Generator
 
 
 	/**
-	 * @internal
 	 * @throws PackageDescriptorException
+	 * @internal
 	 */
 	public function run(): PackageDescriptorEntityInterface
 	{
@@ -49,7 +49,7 @@ final class Generator
 	{
 		try {
 			$packagesVersions = $this->getPackagesVersions();
-		} catch (PackageDescriptorCompileException $e) {
+		} catch (\Throwable $e) {
 			$packagesVersions = [];
 		}
 
@@ -88,7 +88,7 @@ final class Generator
 				trigger_error('File "config.neon" is deprecated for Nette 3.0, please use "common.neon" for path: "' . $path . '".');
 				$configPath = $path . '/config.neon';
 			}
-			if (is_file($composerPath = $path . '/composer.json') && json_decode(file_get_contents($composerPath)) === null) {
+			if (is_file($composerPath = $path . '/composer.json') && json_decode((string) file_get_contents($composerPath)) === null) {
 				PackageDescriptorCompileException::composerJsonIsBroken($name);
 			}
 
@@ -98,7 +98,7 @@ final class Generator
 				'dependency' => $dependency,
 				'config' => $configPath !== null ? $this->formatConfigSections($configPath) : null,
 				'composer' => is_file($composerPath)
-					? Helpers::haystackToArray(json_decode(file_get_contents($composerPath)))
+					? Helpers::haystackToArray(json_decode((string) file_get_contents($composerPath)))
 					: null,
 			];
 		}
@@ -113,7 +113,7 @@ final class Generator
 	private function formatConfigSections(string $path): array
 	{
 		$return = [];
-		foreach (\is_array($neon = Neon::decode(file_get_contents($path))) ? $neon : [] as $part => $haystack) {
+		foreach (\is_array($neon = Neon::decode((string) file_get_contents($path))) ? $neon : [] as $part => $haystack) {
 			if ($part === 'services') {
 				$servicesList = '';
 				foreach ($haystack as $key => $serviceClass) {
@@ -138,7 +138,6 @@ final class Generator
 
 	/**
 	 * @return string[]
-	 * @throws PackageDescriptorCompileException
 	 */
 	private function getPackagesVersions(): array
 	{
@@ -146,20 +145,23 @@ final class Generator
 		$packages = [];
 		if (class_exists(ClassLoader::class, false)) {
 			try {
-				$lockFile = \dirname((new \ReflectionClass(ClassLoader::class))->getFileName()) . '/../../composer.lock';
+				if (($classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName()) === false) {
+					throw new \RuntimeException(
+						'Composer classLoader (class "' . ClassLoader::class . '") does not exist. '
+						. 'Please check your Composer installation.'
+					);
+				}
+				$lockFile = \dirname($classLoader) . '/../../composer.lock';
 			} catch (\ReflectionException $e) {
 				$lockFile = null;
 			}
-
-			if (is_file($lockFile) === false) {
-				PackageDescriptorCompileException::canNotLoadComposerLock($lockFile);
+			if ($lockFile !== null && is_file($lockFile) === false) {
+				throw new \RuntimeException('Can not load "composer.lock", because path "' . $lockFile . '" does not exist.');
 			}
 
-			$composer = @json_decode(file_get_contents($lockFile)); // @ may not exist or be valid
+			$composer = @json_decode((string) file_get_contents((string) $lockFile)); // @ may not exist or be valid
 			$packages = (array) @$composer->packages;
-			usort($packages, function ($a, $b) {
-				return strcmp($a->name, $b->name);
-			});
+			usort($packages, fn ($a, $b) => strcmp($a->name, $b->name));
 		}
 
 		foreach ($packages as $package) {

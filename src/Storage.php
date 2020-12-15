@@ -48,7 +48,7 @@ final class Storage
 			/** @var string $class class-string */
 			$class = '\PackageDescriptorEntity';
 			try {
-				if (!class_exists($class)) {
+				if (\class_exists($class) === false) {
 					throw new \RuntimeException('Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.');
 				}
 				$ref = new \ReflectionClass($class);
@@ -58,14 +58,16 @@ final class Storage
 
 			/** @var PackageDescriptorEntityInterface $service */
 			$service = $ref->newInstance();
-			$this->descriptor = $service;
+			$descriptor = $this->descriptor = $service;
 		} elseif ($this->isCacheExpired($this->descriptor)) {
-			$this->descriptor = $this->save();
+			$descriptor = $this->descriptor = $this->save();
+		} else {
+			$descriptor = $this->descriptor;
 		}
 
-		$this->createPackageConfig($this->descriptor);
+		$this->createPackageConfig($descriptor);
 
-		return $this->descriptor;
+		return $descriptor;
 	}
 
 
@@ -83,7 +85,7 @@ final class Storage
 		foreach ($descriptor->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
-					foreach ($value['data'] ?? [] as $extensionName => $extensionType) {
+					foreach ((array) ($value['data'] ?? []) as $extensionName => $extensionType) {
 						$extensions[$extensionName] = $extensionType;
 					}
 				} elseif ($param !== 'includes') {
@@ -105,7 +107,7 @@ final class Storage
 			$return .= "\n" . $neonKey . ':' . "\n\t";
 			$tree = [];
 			foreach ($packageInfos as $packageInfo) {
-				$neonData = \is_array($packageData = $packageInfo['data']['data'] ?? $packageInfo['data']) ? $packageData : Neon::decode($packageData);
+				$neonData = \is_array($packageData = $packageInfo['data']['data'] ?? $packageInfo['data']) ? $packageData : Neon::decode((string) $packageData);
 				foreach ($neonData as $treeKey => $treeValue) {
 					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
 						unset($neonData[$treeKey]);

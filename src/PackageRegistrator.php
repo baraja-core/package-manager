@@ -35,7 +35,7 @@ class PackageRegistrator
 		if ($projectRoot === null || $tempPath === null) { // path auto detection
 			try {
 				$loaderRc = class_exists(ClassLoader::class) ? new \ReflectionClass(ClassLoader::class) : null;
-				$vendorDir = $loaderRc ? dirname($loaderRc->getFileName(), 2) : null;
+				$vendorDir = $loaderRc ? dirname((string) $loaderRc->getFileName(), 2) : null;
 			} catch (\ReflectionException $e) {
 				$vendorDir = null;
 			}
@@ -43,6 +43,9 @@ class PackageRegistrator
 				$vendorDir = (string) preg_replace('/^(.+?[\\\\|\/]vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
 			}
 			if ($projectRoot === null) {
+				if ($vendorDir === null) {
+					throw new \RuntimeException('Can not resolve "vendorDir". Did you generate Composer autoloader by "composer install" or "composer dump" command?');
+				}
 				$projectRoot = dirname($vendorDir);
 			}
 			if ($tempPath === null) {

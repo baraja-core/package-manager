@@ -94,6 +94,9 @@ final class CiDetector
 	private function detectCurrentCiServer(): ?CiInterface
 	{
 		foreach ($this->getCiServers() as $ciClass) {
+			if (\class_exists($ciClass) === false) {
+				throw new \RuntimeException('CI service "' . $ciClass . '" does not exist or is not autoloadable.');
+			}
 			if (call_user_func([$ciClass, 'isDetected'], $this->environment)) {
 				return new $ciClass($this->environment);
 			}

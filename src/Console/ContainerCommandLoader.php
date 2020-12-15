@@ -29,7 +29,6 @@ final class ContainerCommandLoader implements CommandLoaderInterface
 
 
 	/**
-	 * @throws CommandNotFoundException
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingParameterTypeHint
 	 * @phpcsSuppress SlevomatCodingStandard.TypeHints.TypeHintDeclaration.MissingReturnTypeHint
 	 */

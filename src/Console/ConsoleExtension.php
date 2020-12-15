@@ -53,7 +53,7 @@ final class ConsoleExtension extends CompilerExtension
 				Expect::anyOf(Expect::string(), Expect::array(), Expect::type(Statement::class))
 			),
 			'lazy' => Expect::bool(true),
-		]);
+		])->castTo('array');
 	}
 
 
@@ -64,33 +64,34 @@ final class ConsoleExtension extends CompilerExtension
 		}
 
 		$builder = $this->getContainerBuilder();
-		$config = $this->config;
-		$defhelp = new ExtensionDefinitionsHelper($this->compiler);
+		/** @var mixed[] $config */
+		$config = $this->getConfig();
+		$definitionHelper = new ExtensionDefinitionsHelper($this->compiler);
 
 		// Register Symfony Console Application
 		$applicationDef = $builder->addDefinition($this->prefix('application'))
 			->setFactory(Application::class);
 
-		if ($config->name !== null) { // Setup console name
-			$applicationDef->addSetup('setName', [$config->name]);
+		if (($config['name'] ?? null) !== null) { // Setup console name
+			$applicationDef->addSetup('setName', [$config['name']]);
 		}
-		if ($config->version !== null) { // Setup console version
-			$applicationDef->addSetup('setVersion', [(string) $config->version]);
+		if (($config['version'] ?? null) !== null) { // Setup console version
+			$applicationDef->addSetup('setVersion', [(string) $config['version']]);
 		}
-		if ($config->catchExceptions !== null) { // Catch or populate exceptions
-			$applicationDef->addSetup('setCatchExceptions', [$config->catchExceptions]);
+		if (($config['catchExceptions'] ?? null) !== null) { // Catch or populate exceptions
+			$applicationDef->addSetup('setCatchExceptions', [$config['catchExceptions']]);
 		}
-		if ($config->autoExit !== null) { // Call die() or not
-			$applicationDef->addSetup('setAutoExit', [$config->autoExit]);
+		if (($config['autoExit'] ?? null) !== null) { // Call die() or not
+			$applicationDef->addSetup('setAutoExit', [$config['autoExit']]);
 		}
-		if ($config->helperSet !== null) { // Register given or default HelperSet
+		if (($config['helperSet'] ?? null) !== null) { // Register given or default HelperSet
 			$applicationDef->addSetup('setHelperSet', [
-				$defhelp->getDefinitionFromConfig($config->helperSet, $this->prefix('helperSet')),
+				$definitionHelper->getDefinitionFromConfig($config['helperSet'], $this->prefix('helperSet')),
 			]);
 		}
-		foreach ($config->helpers as $helperName => $helperConfig) { // Register extra helpers
+		foreach ($config['helpers'] ?? [] as $helperName => $helperConfig) { // Register extra helpers
 			$helperPrefix = $this->prefix('helper.' . $helperName);
-			$helperDef = $defhelp->getDefinitionFromConfig($helperConfig, $helperPrefix);
+			$helperDef = $definitionHelper->getDefinitionFromConfig($helperConfig, $helperPrefix);
 
 			if ($helperDef instanceof Definition) {
 				$helperDef->setAutowired(false);
@@ -98,7 +99,7 @@ final class ConsoleExtension extends CompilerExtension
 
 			$applicationDef->addSetup('?->getHelperSet()->set(?)', ['@self', $helperDef]);
 		}
-		if ($config->lazy) { // Commands lazy loading
+		if ($config['lazy'] ?? false) { // Commands lazy loading
 			$builder->addDefinition($this->prefix('commandLoader'))
 				->setType(CommandLoaderInterface::class)
 				->setFactory(ContainerCommandLoader::class);

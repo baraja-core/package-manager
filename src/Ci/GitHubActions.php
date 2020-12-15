@@ -55,7 +55,7 @@ class GitHubActions extends AbstractCi
 	{
 		$gitReference = $this->env->getString('GITHUB_REF');
 
-		return preg_replace('~^refs/heads/~', '', $gitReference);
+		return (string) preg_replace('~^refs/heads/~', '', $gitReference);
 	}
 
 

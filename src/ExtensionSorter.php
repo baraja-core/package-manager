@@ -63,6 +63,9 @@ final class ExtensionSorter
 	 */
 	private static function invokeStaticMethodSafe(string $class, string $method): ?array
 	{
+		if (\class_exists($class) === false) {
+			throw new \RuntimeException('Extension class "' . $class . '" does not exist.');
+		}
 		if (\method_exists($class, $method) === false) {
 			return null;
 		}
@@ -123,7 +126,7 @@ final class ExtensionSorter
 			if ($position !== null) {
 				unset($candidates[$candidateKey]);
 				$registered[] = $candidate['type'];
-				$return = self::insertBefore($return, $position - 1, $candidate);
+				$return = self::insertBefore($return, ((int) $position) - 1, $candidate);
 			} else {
 				throw new \RuntimeException(
 					'Internal conflict in dependencies: Item "' . $candidate['type'] . '" requires conditions that conflict with another extension.' . "\n"
