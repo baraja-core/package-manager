@@ -70,6 +70,7 @@ final class ExtensionSorter
 			return null;
 		}
 
+		/* @phpstan-ignore-next-line */
 		return ((array) call_user_func($class . '::' . $method)) ?: null;
 	}
 

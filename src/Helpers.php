@@ -75,9 +75,8 @@ final class Helpers
 			}
 
 			$return = [];
-			/** @var mixed[] $input */
-			foreach ($input as $k => $v) {
-				$return[$k] = self::haystackToArray($v);
+			foreach ($reflection->getProperties() as $property) {
+				$return[$property->getName()] = self::haystackToArray($property->getValue($input));
 			}
 			foreach ($reflection->getMethods() as $method) {
 				if ($method->name !== 'getReflection' && preg_match('/^(get|is)(.+)$/', $method->name, $_method)) {
