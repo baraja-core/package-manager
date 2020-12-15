@@ -7,7 +7,7 @@ namespace Baraja\PackageManager;
 
 class GitLab extends AbstractCi
 {
-	public static function isDetected(Env $env): bool
+	public function isDetected(Env $env): bool
 	{
 		return $env->get('GITLAB_CI') !== false;
 	}

@@ -7,7 +7,7 @@ namespace Baraja\PackageManager;
 
 class Circle extends AbstractCi
 {
-	public static function isDetected(Env $env): bool
+	public function isDetected(Env $env): bool
 	{
 		return $env->get('CIRCLECI') !== false;
 	}

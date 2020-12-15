@@ -97,8 +97,10 @@ final class CiDetector
 			if (\class_exists($ciClass) === false) {
 				throw new \RuntimeException('CI service "' . $ciClass . '" does not exist or is not autoloadable.');
 			}
-			if (call_user_func([$ciClass, 'isDetected'], $this->environment)) {
-				return new $ciClass($this->environment);
+			/** @var CiInterface $ci */
+			$ci = new $ciClass($this->environment);
+			if ($ci->isDetected($this->environment)) {
+				return $ci;
 			}
 		}
 
