@@ -5,9 +5,10 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Contributte\Console\Application;
+use Baraja\PackageManager\Console\Console;
 use Nette\DI\CompilerExtension;
 use Nette\PhpGenerator\ClassType;
+use Symfony\Component\Console\Application;
 
 final class PackageManagerExtension extends CompilerExtension
 {
@@ -23,7 +24,7 @@ final class PackageManagerExtension extends CompilerExtension
 
 	public function afterCompile(ClassType $class): void
 	{
-		if (PHP_SAPI === 'cli' && class_exists(Application::class) === true) {
+		if (PHP_SAPI === 'cli') {
 			$class->getMethod('initialize')->addBody(
 				'// Package manager.' . "\n"
 				. '(function () {' . "\n"

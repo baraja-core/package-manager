@@ -2,11 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Baraja\PackageManager;
+namespace Baraja\PackageManager\Console;
 
 
-use Contributte\Console\Application;
+use Baraja\PackageManager\Helpers;
 use Nette\Application\Application as NetteApplication;
+use Nette\DI\Container;
+use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Command\Command;
 use Tracy\Debugger;
 
 final class Console
@@ -20,9 +23,37 @@ final class Console
 
 
 	/**
-	 * Simple console wrapper for call internal command by index.php.
+	 * The runtime method finds all compatible services that are valid
+	 * Symfony command and registers them in the application.
+	 * The search must be performed at runtime to detect any commands
+	 * that insert any extensions or other services.
 	 *
-	 * @param Application $consoleApplication
+	 * @return Command[]
+	 */
+	public static function registerCommands(Container $container): array
+	{
+		return (static function (array $services, Container $container): array {
+			$return = [];
+			foreach ($services as $serviceName) {
+				try {
+					/** @var Command $command */
+					$command = $container->getService($serviceName);
+					if ($command->getName() === null) {
+						$command->setName($serviceName);
+					}
+					$return[] = $command;
+				} catch (\Throwable $e) {
+					trigger_error('Command error: ' . $e->getMessage());
+				}
+			}
+
+			return $return;
+		})($container->findByType(Command::class), $container);
+	}
+
+
+	/**
+	 * Simple console wrapper for call internal command by index.php.
 	 */
 	private function run(Application $consoleApplication): void
 	{
