@@ -25,9 +25,9 @@ final class AssetsFromPackageTask extends BaseTask
 		echo 'BasePath:    ' . ($basePath = \dirname(__DIR__, 5) . '/') . "\n";
 		echo 'ProjectRoot: ' . \rtrim(\dirname($basePath), '/') . '/' . "\n\n";
 
-		foreach (glob($basePath . '*') ?? [] as $namespace) {
+		foreach (glob($basePath . '*') ?: [] as $namespace) {
 			if (\is_dir($namespace)) {
-				foreach (glob($namespace . '/*') ?? [] as $package) {
+				foreach (glob($namespace . '/*') ?: [] as $package) {
 					if (\is_dir($package)) {
 						$this->processPackage(rtrim($package) . '/', $basePath);
 					}
@@ -72,7 +72,7 @@ final class AssetsFromPackageTask extends BaseTask
 	{
 		foreach (scandir(rtrim(preg_replace('/\/+/', '/', $basePath . '/' . $path), '/'), 1) as $file) {
 			if ($file !== '.' && $file !== '..') {
-				$pathWithFile = preg_replace('/\/+/', '/', $path . '/' . $file);
+				$pathWithFile = (string) preg_replace('/\/+/', '/', $path . '/' . $file);
 				$projectFilePath = rtrim($projectRoot, '/') . '/' . ltrim($pathWithFile, '/');
 
 				if (\is_dir($basePath . '/' . $pathWithFile)) {

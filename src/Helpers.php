@@ -47,7 +47,7 @@ final class Helpers
 		static $disabled;
 		if (\function_exists($functionName) === true) {
 			if ($disabled === null && \is_string($disableFunctions = ini_get('disable_functions'))) {
-				$disabled = explode(',', $disableFunctions);
+				$disabled = explode(',', (string) $disableFunctions);
 			}
 
 			return \in_array($functionName, $disabled, true) === false;
@@ -75,6 +75,7 @@ final class Helpers
 			}
 
 			$return = [];
+			/** @var mixed[] $input */
 			foreach ($input as $k => $v) {
 				$return[$k] = self::haystackToArray($v);
 			}

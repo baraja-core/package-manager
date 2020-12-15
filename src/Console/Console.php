@@ -68,9 +68,9 @@ final class Console
 			}
 			if (\is_file($logPath = \dirname(__DIR__, 4) . '/log/exception.log') === true) {
 				$data = file($logPath);
-				$logLine = trim((string) ($data[\count($data) - 1] ?? '???'));
+				$logLine = trim((string) ($data === false ? '???' : $data[\count($data) - 1] ?? '???'));
 
-				if (preg_match('/(exception--[\d-]+--[a-f\d]+\.html)/', $logLine, $logLineParser)) {
+				if (preg_match('/((?:debug|info|warning|error|exception|critical)--[\d-]+--[a-f\d]+\.html)/', $logLine, $logLineParser)) {
 					Helpers::terminalRenderError('Logged to file: ' . $logLineParser[1]);
 				}
 

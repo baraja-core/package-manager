@@ -74,6 +74,9 @@ final class InteractiveComposer
 			}
 			if (preg_match('/^[A-Z0-9].*Task$/', $className)) {
 				try {
+					if (\class_exists($className) === false) {
+						throw new \RuntimeException('Task class "' . $className . '" does not exist.');
+					}
 					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(ITask::class) === true) {
 						$return[$className] = [
@@ -86,6 +89,9 @@ final class InteractiveComposer
 			}
 			if (preg_match('/^[A-Z0-9].*Identity/', $className)) {
 				try {
+					if (\class_exists($className) === false) {
+						throw new \RuntimeException('Task class "' . $className . '" does not exist.');
+					}
 					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(CompanyIdentity::class) === true) {
 						/** @var CompanyIdentity $identity */
@@ -101,9 +107,7 @@ final class InteractiveComposer
 			echo $identityTemplate . "\n";
 		}
 
-		usort($return, static function (array $a, array $b): int {
-			return $a[1] < $b[1] ? 1 : -1;
-		});
+		usort($return, fn (array $a, array $b): int => $a[1] < $b[1] ? 1 : -1);
 
 		return $return;
 	}

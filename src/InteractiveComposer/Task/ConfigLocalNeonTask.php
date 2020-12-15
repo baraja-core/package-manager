@@ -21,7 +21,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	 *
 	 * @var string[][][]
 	 */
-	private static $commonCredentials = [
+	private static array $commonCredentials = [
 		'localhost' => [
 			['root', 'root'],
 			['root', 'password'],
@@ -104,7 +104,12 @@ final class ConfigLocalNeonTask extends BaseTask
 		$candidateDatabases = [];
 		echo "\n\n";
 
-		foreach ($connection->query('SHOW DATABASES')->fetchAll() as $database) {
+		if (($showDatabasesSelection = $connection->query('SHOW DATABASES')) !== false) {
+			$databaseSelectionList = $showDatabasesSelection->fetchAll() ?: [];
+		} else {
+			$databaseSelectionList = [];
+		}
+		foreach ($databaseSelectionList as $database) {
 			echo $databaseCounter . ': ' . $database[0] . "\n";
 			$databaseList[$databaseCounter] = $database[0];
 			$databaseCounter++;
@@ -129,9 +134,9 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			if (strtolower($usedDatabase) === 'new') {
 				while (true) {
-					if (preg_match('/^[a-z0-9_\-]+$/', $usedDatabase = $this->ask('How is the database name?'))) {
+					if (preg_match('/^[a-z0-9_\-]+$/', (string) $usedDatabase = $this->ask('How is the database name?'))) {
 						if (!\in_array($usedDatabase, $databaseList, true)) {
-							$this->createDatabase($usedDatabase, $connection);
+							$this->createDatabase((string) $usedDatabase, $connection);
 							break;
 						}
 
@@ -213,9 +218,9 @@ final class ConfigLocalNeonTask extends BaseTask
 
 			if ($this->ask('Use this configuration?', ['y', 'n']) === 'y') {
 				return [
-					'server' => $connectionServer,
-					'user' => $connectionUser,
-					'password' => $connectionPassword,
+					'server' => (string) $connectionServer,
+					'user' => (string) $connectionUser,
+					'password' => (string) $connectionPassword,
 				];
 			}
 		}

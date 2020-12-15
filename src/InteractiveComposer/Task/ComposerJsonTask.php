@@ -55,9 +55,14 @@ final class ComposerJsonTask extends BaseTask
 		// build
 		$composer['require'] = $require;
 
-		FileSystem::write($path, preg_replace_callback('/\n(\s+)/', function (array $match): string {
-			return "\n" . str_replace('    ', "\t", $match[1]);
-		}, Json::encode($composer, Json::PRETTY)));
+		FileSystem::write(
+			$path,
+			(string) preg_replace_callback(
+				'/\n(\s+)/',
+				fn (array $match): string => "\n" . str_replace('    ', "\t", $match[1]),
+				Json::encode($composer, Json::PRETTY)
+			)
+		);
 
 		return true;
 	}
@@ -82,12 +87,12 @@ final class ComposerJsonTask extends BaseTask
 			if (isset($composer['require'])) {
 				foreach ($composer['require'] as $dependency => $version) {
 					if (isset($return[$dependency]) === false && Strings::startsWith($dependency, 'ext-')) {
-						$return[$dependency] = true;
+						$return[$dependency] = $dependency;
 					}
 				}
 			}
 		}
 
-		return array_keys($return);
+		return array_values($return);
 	}
 }

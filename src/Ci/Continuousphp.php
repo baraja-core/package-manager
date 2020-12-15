@@ -47,7 +47,7 @@ class Continuousphp extends AbstractCi
 	{
 		$gitReference = $this->env->getString('CPHP_GIT_REF');
 
-		return preg_replace('~^refs/heads/~', '', $gitReference) ?? '';
+		return (string) preg_replace('~^refs/heads/~', '', $gitReference) ?? '';
 	}
 
 

@@ -53,8 +53,7 @@ final class ClassMapGenerator
 	 */
 	private static function findClasses(string $path): array
 	{
-		$contents = file_get_contents($path);
-		$tokens = token_get_all($contents);
+		$tokens = token_get_all((string) file_get_contents($path));
 		$classes = [];
 		$namespace = '';
 
