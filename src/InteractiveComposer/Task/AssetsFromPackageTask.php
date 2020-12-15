@@ -70,7 +70,7 @@ final class AssetsFromPackageTask extends BaseTask
 
 	private function copyFilesRecursively(string $basePath, string $path, string $projectRoot, bool $forceUpdate): void
 	{
-		foreach (scandir(rtrim(preg_replace('/\/+/', '/', $basePath . '/' . $path), '/'), 1) as $file) {
+		foreach (scandir(rtrim((string) preg_replace('/\/+/', '/', $basePath . '/' . $path), '/'), 1) ?: [] as $file) {
 			if ($file !== '.' && $file !== '..') {
 				$pathWithFile = (string) preg_replace('/\/+/', '/', $path . '/' . $file);
 				$projectFilePath = rtrim($projectRoot, '/') . '/' . ltrim($pathWithFile, '/');

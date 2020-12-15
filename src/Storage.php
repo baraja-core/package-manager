@@ -107,7 +107,8 @@ final class Storage
 			$return .= "\n" . $neonKey . ':' . "\n\t";
 			$tree = [];
 			foreach ($packageInfos as $packageInfo) {
-				$neonData = \is_array($packageData = $packageInfo['data']['data'] ?? $packageInfo['data']) ? $packageData : Neon::decode((string) $packageData);
+				$packageData = $packageInfo['data']['data'] ?? $packageInfo['data'];
+				$neonData = \is_array($packageData) ? $packageData : Neon::decode((string) $packageData);
 				foreach ($neonData as $treeKey => $treeValue) {
 					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
 						unset($neonData[$treeKey]);
