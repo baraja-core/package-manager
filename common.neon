@@ -1,2 +1,11 @@
 extensions:
+	console: Baraja\PackageManager\ConsoleExtension
 	packageManagerExtension: Baraja\PackageManager\PackageManagerExtension
+
+console:
+	name: Baraja sandbox
+	version: '3.0'
+	catchExceptions: true
+	autoExit: true
+	url: https://baraja.cz
+	lazy: false
