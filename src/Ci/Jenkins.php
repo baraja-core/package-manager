@@ -7,7 +7,7 @@ namespace Baraja\PackageManager;
 
 class Jenkins extends AbstractCi
 {
-	public static function isDetected(Env $env): bool
+	public function isDetected(Env $env): bool
 	{
 		return $env->get('JENKINS_URL') !== false;
 	}
