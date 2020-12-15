@@ -52,9 +52,9 @@ final class ExtensionDefinitionsHelper
 				}
 			} else {
 				// Definition is of type:
-				//		accessor - service definition exists independently
-				//		imported - runtime-created service, cannot work with
-				//		unknown
+				// accessor - service definition exists independently
+				// imported - runtime-created service, cannot work with
+				// unknown
 				continue;
 			}
 		}
