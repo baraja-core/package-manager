@@ -52,6 +52,9 @@ final class Generator
 		} catch (\Throwable $e) {
 			$packagesVersions = [];
 		}
+		if (isset($composer['require']) === false) {
+			throw new \LogicException('Key "require" is mandatory for your project "composer.json".');
+		}
 
 		$packageDirs = array_merge($composer['require'], $packagesVersions);
 
