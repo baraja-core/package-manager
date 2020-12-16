@@ -75,12 +75,16 @@ final class Helpers
 			}
 
 			$return = [];
-			foreach ($reflection->getProperties() as $property) {
-				$return[$property->getName()] = self::haystackToArray($property->getValue($input));
-			}
-			foreach ($reflection->getMethods() as $method) {
-				if ($method->name !== 'getReflection' && preg_match('/^(get|is)(.+)$/', $method->name, $_method)) {
-					$return[lcfirst($_method[2])] = self::haystackToArray($input->{$method->name}());
+			if ($input instanceof \stdClass) {
+				$return = (array) json_decode((string) json_encode($input), true);
+			} else {
+				foreach ($reflection->getProperties() as $property) {
+					$return[$property->getName()] = self::haystackToArray($property->getValue($input));
+				}
+				foreach ($reflection->getMethods() as $method) {
+					if ($method->name !== 'getReflection' && preg_match('/^(get|is)(.+)$/', $method->name, $_method)) {
+						$return[lcfirst($_method[2])] = self::haystackToArray($input->{$method->name}());
+					}
 				}
 			}
 		} elseif (\is_array($input)) {
