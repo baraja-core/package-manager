@@ -68,14 +68,14 @@ final class InteractiveComposer
 		echo 'Indexing classes...';
 		$identityTemplate = null;
 
-		foreach (array_keys(ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot())) as $className) {
+		foreach (ClassMapGenerator::createMap($this->packageRegistrator->getProjectRoot()) as $className => $classPath) {
 			if (\is_string($className) === false) {
 				throw new \RuntimeException('Class name must be type of string, but type "' . \gettype($className) . '" given.');
 			}
 			if (preg_match('/^[A-Z0-9].*Task$/', $className)) {
 				try {
 					if (\class_exists($className) === false) {
-						throw new \RuntimeException('Task class "' . $className . '" does not exist.');
+						require_once $classPath;
 					}
 					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(ITask::class) === true) {
@@ -90,7 +90,7 @@ final class InteractiveComposer
 			if (preg_match('/^[A-Z0-9].*Identity/', $className)) {
 				try {
 					if (\class_exists($className) === false) {
-						throw new \RuntimeException('Task class "' . $className . '" does not exist.');
+						require_once $classPath;
 					}
 					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(CompanyIdentity::class) === true) {
