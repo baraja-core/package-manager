@@ -76,6 +76,9 @@ final class InteractiveComposer
 				try {
 					if (\class_exists($className) === false) {
 						require_once $classPath;
+						if (\class_exists($className) === false) {
+							throw new \RuntimeException('Task class "' . $className . '" does not exist.');
+						}
 					}
 					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(ITask::class) === true) {
@@ -91,6 +94,9 @@ final class InteractiveComposer
 				try {
 					if (\class_exists($className) === false) {
 						require_once $classPath;
+						if (\class_exists($className) === false) {
+							throw new \RuntimeException('CompanyIdentity class "' . $className . '" does not exist.');
+						}
 					}
 					$ref = new \ReflectionClass($className);
 					if ($ref->isInterface() === false && $ref->isAbstract() === false && $ref->implementsInterface(CompanyIdentity::class) === true) {
