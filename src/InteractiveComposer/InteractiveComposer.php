@@ -77,7 +77,7 @@ final class InteractiveComposer
 					if (\class_exists($className) === false) {
 						require_once $classPath;
 						if (\class_exists($className) === false) {
-							throw new \RuntimeException('Task class "' . $className . '" does not exist.');
+							continue;
 						}
 					}
 					$ref = new \ReflectionClass($className);
@@ -95,7 +95,7 @@ final class InteractiveComposer
 					if (\class_exists($className) === false) {
 						require_once $classPath;
 						if (\class_exists($className) === false) {
-							throw new \RuntimeException('CompanyIdentity class "' . $className . '" does not exist.');
+							continue;
 						}
 					}
 					$ref = new \ReflectionClass($className);
