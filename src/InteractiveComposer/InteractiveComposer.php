@@ -75,7 +75,9 @@ final class InteractiveComposer
 			if (preg_match('/^[A-Z0-9].*Task$/', $className)) {
 				try {
 					if (\class_exists($className) === false) {
-						require_once $classPath;
+						if (strpos($classPath, '/vendor/') === false) {
+							require_once $classPath;
+						}
 						if (\class_exists($className) === false) {
 							continue;
 						}
@@ -93,7 +95,9 @@ final class InteractiveComposer
 			if (preg_match('/^[A-Z0-9].*Identity/', $className)) {
 				try {
 					if (\class_exists($className) === false) {
-						require_once $classPath;
+						if (strpos($classPath, '/vendor/') === false) {
+							require_once $classPath;
+						}
 						if (\class_exists($className) === false) {
 							continue;
 						}
