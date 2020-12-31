@@ -136,6 +136,11 @@ class PackageRegistrator
 			echo '---------------------------------' . "\n\n";
 		}
 
+		try {
+			FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
+		} catch (\Throwable $e) {
+			trigger_error($e->getMessage());
+		}
 		echo 'Run Composer autoload: ';
 		$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
 		if (\is_file($composerFileAutoloadPath)) {
