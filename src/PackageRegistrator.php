@@ -137,8 +137,16 @@ class PackageRegistrator
 		}
 
 		echo 'Run Composer autoload: ';
-		require_once __DIR__ . '/../../../autoload.php';
-		echo 'done.' . "\n" . '---------------------------------' . "\n\n";
+		$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
+		if (\is_file($composerFileAutoloadPath)) {
+			foreach (require $composerFileAutoloadPath as $file) {
+				require_once $file;
+			}
+			echo 'done.';
+		} else {
+			echo 'Can not load autoload files.';
+		}
+		echo "\n" . '---------------------------------' . "\n\n";
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
