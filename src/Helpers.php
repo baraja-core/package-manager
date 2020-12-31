@@ -101,39 +101,6 @@ final class Helpers
 
 
 	/**
-	 * Render code snippet to Terminal.
-	 */
-	public static function terminalRenderCode(string $path, ?int $markLine = null): void
-	{
-		if (PHP_SAPI !== 'cli') {
-			throw new \RuntimeException('Terminal: This method is available only in CLI mode.');
-		}
-		echo "\n" . $path . ($markLine === null ? '' : ' [on line ' . $markLine . ']') . "\n\n";
-		if (\is_file($path) === true) {
-			echo '----- file -----' . "\n";
-			$fileParser = explode("\n", str_replace(["\r\n", "\r"], "\n", (string) file_get_contents($path)));
-
-			for ($i = ($start = $markLine > 8 ? $markLine - 8 : 0); $i <= $start + 15; $i++) {
-				if (isset($fileParser[$i]) === false) {
-					break;
-				}
-
-				$currentLine = $i + 1;
-				$highlight = $markLine === $currentLine;
-
-				echo ($highlight ? "\e[1;37m\e[41m" : "\e[100m")
-					. str_pad(' ' . $currentLine . ': ', 6, ' ') . ($highlight ? '' : "\e[0m")
-					. str_replace("\t", '    ', $fileParser[$i])
-					. ($highlight ? "\e[0m" : '')
-					. "\n";
-			}
-
-			echo '----- file -----' . "\n\n";
-		}
-	}
-
-
-	/**
 	 * Ask question in Terminal and return user answer (string or null if empty).
 	 *
 	 * Function will be asked since user give valid answer.
@@ -198,24 +165,7 @@ final class Helpers
 	/** Render red block with error message. */
 	public static function terminalRenderError(string $message): void
 	{
-		if (PHP_SAPI !== 'cli') {
-			throw new \RuntimeException('Terminal: This method is available only in CLI mode.');
-		}
-		echo "\033[1;37m\033[41m" . str_repeat(' ', 100) . "\n";
-
-		foreach (explode("\n", str_replace(["\r\n", "\r"], "\n", $message)) as $line) {
-			while (true) {
-				if (preg_match('/^(.{85,}?)[\s\n](.*)$/', $line, $match) === 0) {
-					echo self::formatTerminalLine($line);
-					break;
-				}
-
-				$line = $match[2];
-				echo self::formatTerminalLine($match[1]);
-			}
-		}
-
-		echo str_repeat(' ', 100) . "\033[0m";
+		\Baraja\Console\Helpers::terminalRenderError($message);
 	}
 
 
@@ -226,11 +176,5 @@ final class Helpers
 	private static function length(string $s): int
 	{
 		return function_exists('mb_strlen') ? mb_strlen($s, 'UTF-8') : strlen(utf8_decode($s));
-	}
-
-
-	private static function formatTerminalLine(string $line): string
-	{
-		return '      ' . $line . (($repeat = 88 - self::length($line)) > 0 ? str_repeat(' ', $repeat) : '') . '      ' . "\n";
 	}
 }

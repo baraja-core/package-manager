@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
+use Baraja\Console\Helpers as ConsoleHelpers;
+use Baraja\PackageManager\Composer\TaskManager;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Composer\Autoload\ClassLoader;
 use Nette\Utils\FileSystem;
@@ -68,9 +70,17 @@ class PackageRegistrator
 		} catch (PackageDescriptorException $e) {
 			Debugger::log($e, 'critical');
 			if (PHP_SAPI === 'cli') {
-				Helpers::terminalRenderError($e->getMessage());
+				ConsoleHelpers::terminalRenderError($e->getMessage());
 			}
 		}
+	}
+
+
+	public static function get(): self
+	{
+		static $cache;
+
+		return $cache ?? $cache = new self;
 	}
 
 
@@ -126,12 +136,16 @@ class PackageRegistrator
 			echo '---------------------------------' . "\n\n";
 		}
 
+		echo 'Run Composer autoload: ';
+		require_once __DIR__ . '/../../../autoload.php';
+		echo 'done.' . "\n" . '---------------------------------' . "\n\n";
+
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
-			(new InteractiveComposer(new self))->run();
+			(new InteractiveComposer)->run(TaskManager::get());
 		} catch (\Exception $e) {
-			Helpers::terminalRenderError($e->getMessage());
-			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
+			ConsoleHelpers::terminalRenderError($e->getMessage());
+			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
 			Debugger::log($e, 'critical');
 			echo 'Error was logged to file.' . "\n\n";
 		}
@@ -146,8 +160,8 @@ class PackageRegistrator
 		try {
 			$ci = self::getCiDetect();
 		} catch (\Exception $e) {
-			Helpers::terminalRenderError($e->getMessage());
-			Helpers::terminalRenderCode($e->getFile(), $e->getLine());
+			ConsoleHelpers::terminalRenderError($e->getMessage());
+			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
 			Debugger::log($e, 'critical');
 			echo 'Error was logged to file.' . "\n\n";
 			$ci = null;

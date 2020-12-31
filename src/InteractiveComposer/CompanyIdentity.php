@@ -11,11 +11,6 @@ namespace Baraja\PackageManager\Composer;
  */
 interface CompanyIdentity
 {
-
-	/**
-	 * Return unique company logo with some information.
-	 *
-	 * @return string
-	 */
+	/** Return unique company logo with some information. */
 	public function getLogo(): string;
 }
