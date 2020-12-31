@@ -140,7 +140,9 @@ class PackageRegistrator
 		$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
 		if (\is_file($composerFileAutoloadPath)) {
 			foreach (require $composerFileAutoloadPath as $file) {
-				require_once $file;
+				if (strpos((string) file_get_contents($file), '--package-registrator-task--') !== false) {
+					require_once $file;
+				}
 			}
 			echo 'done.';
 		} else {
