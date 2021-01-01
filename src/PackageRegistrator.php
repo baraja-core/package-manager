@@ -105,43 +105,44 @@ class PackageRegistrator
 			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
 		}
 
-		echo 'Starting Composer post autoload dump task.' . "\n\n";
-		echo 'Server time: ' . date('Y-m-d H:i:s') . "\n";
+		echo "\n" . 'Composer post autoload dump task manager' . "\n" . str_repeat('=', 40) . "\n\n";
+		echo ConsoleHelpers::terminalRenderLabel('Server time') . ': ' . date('Y-m-d H:i:s') . "\n";
 		if (defined('PHP_VERSION') && defined('PHP_OS')) {
-			echo 'Using PHP version: ' . PHP_VERSION . ' (' . PHP_OS . ')' . "\n";
+			echo ConsoleHelpers::terminalRenderLabel('Using PHP version') . ': ' . PHP_VERSION . ' (' . PHP_OS . ')' . "\n";
 		}
 		if (isset($_SERVER['USER'])) {
-			echo 'User: ' . $_SERVER['USER'] . "\n";
+			echo ConsoleHelpers::terminalRenderLabel('User') . ': ' . $_SERVER['USER'] . "\n";
 		}
 		if (isset($_SERVER['SCRIPT_FILENAME'])) {
-			echo 'Called by script: ' . $_SERVER['SCRIPT_FILENAME'] . "\n";
+			echo ConsoleHelpers::terminalRenderLabel('Called by script') . ': ' . $_SERVER['SCRIPT_FILENAME'] . "\n";
 		}
 		if (isset($_SERVER['argv'], $_SERVER['argc']) && $_SERVER['argc'] > 0) {
-			echo 'Command arguments:' . "\n";
+			echo ConsoleHelpers::terminalRenderLabel('Command arguments') . ':' . "\n";
 			echo '   - ' . implode("\n" . '   - ', $_SERVER['argv']) . "\n";
 		}
-		echo '------------------------------------------' . "\n\n";
+		echo "\n" . 'CI status' . "\n" . '=========' . "\n\n";
 		self::composerRenderCiDetectorInfo();
+		echo "\n";
 
+		echo 'Runtime mode' . "\n" . '============' . "\n\n";
 		if (isset($_SERVER['argv'][2]) === true && $_SERVER['argv'][2] === '--') {
 			self::$configurationMode = true;
 		}
-
 		if (self::isConfigurationMode() === true) {
 			echo '️⚙️️  This is a advance configuration mode.' . "\n";
-			echo '---------------------------------' . "\n\n";
 		} else {
 			echo '️⚔️  This is a regular mode.' . "\n";
 			echo '   If you want use advance configuration, please use command "composer dump --".' . "\n";
-			echo '---------------------------------' . "\n\n";
 		}
+		echo "\n";
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
 		} catch (\Throwable $e) {
 			trigger_error($e->getMessage());
 		}
-		echo 'Run Composer autoload: ';
+
+		echo 'Init Composer autoload' . "\n" . '======================' . "\n";
 		$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
 		if (\is_file($composerFileAutoloadPath)) {
 			foreach (require $composerFileAutoloadPath as $file) {
@@ -149,11 +150,10 @@ class PackageRegistrator
 					require_once $file;
 				}
 			}
-			echo 'done.';
+			ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
 		} else {
-			echo 'Can not load autoload files.';
+			ConsoleHelpers::terminalRenderError('Can not load autoload files.');
 		}
-		echo "\n" . '---------------------------------' . "\n\n";
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
@@ -182,17 +182,16 @@ class PackageRegistrator
 			$ci = null;
 		}
 
-		echo 'CI status: ' . ($ci === null ? 'No detected' : 'detected 👍') . "\n\n";
+		echo ($ci === null ? 'No detected.' : 'Detected 👍') . "\n";
 		if ($ci !== null) {
-			echo 'CI name: ' . $ci->getCiName() . "\n";
-			echo 'is Pull request? ' . $ci->isPullRequest()->describe() . "\n";
-			echo 'Build number: ' . $ci->getBuildNumber() . "\n";
-			echo 'Build URL: ' . $ci->getBuildUrl() . "\n";
-			echo 'Git commit: ' . $ci->getGitCommit() . "\n";
-			echo 'Git branch: ' . $ci->getGitBranch() . "\n";
-			echo 'Repository name: ' . $ci->getRepositoryName() . "\n";
-			echo 'Repository URL: ' . $ci->getRepositoryUrl() . "\n";
-			echo '---------------------------------' . "\n\n";
+			echo ' | CI name: ' . $ci->getCiName() . "\n";
+			echo ' | is Pull request? ' . $ci->isPullRequest()->describe() . "\n";
+			echo ' | Build number: ' . $ci->getBuildNumber() . "\n";
+			echo ' | Build URL: ' . $ci->getBuildUrl() . "\n";
+			echo ' | Git commit: ' . $ci->getGitCommit() . "\n";
+			echo ' | Git branch: ' . $ci->getGitBranch() . "\n";
+			echo ' | Repository name: ' . $ci->getRepositoryName() . "\n";
+			echo ' | Repository URL: ' . $ci->getRepositoryUrl() . "\n";
 		}
 	}
 
