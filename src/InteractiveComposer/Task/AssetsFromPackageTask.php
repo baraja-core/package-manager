@@ -23,7 +23,7 @@ final class AssetsFromPackageTask extends BaseTask
 		}
 
 		echo 'BasePath:    ' . ($basePath = \dirname(__DIR__, 5) . '/') . "\n";
-		echo 'ProjectRoot: ' . \rtrim(\dirname($basePath), '/') . '/' . "\n\n";
+		echo 'ProjectRoot: ' . \rtrim(\dirname($basePath), '/') . '/';
 
 		foreach (glob($basePath . '*') ?: [] as $namespace) {
 			if (\is_dir($namespace)) {

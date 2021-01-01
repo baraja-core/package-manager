@@ -64,6 +64,8 @@ final class ComposerJsonTask extends BaseTask
 			)
 		);
 
+		echo 'Composer.json has been fixed.';
+
 		return true;
 	}
 

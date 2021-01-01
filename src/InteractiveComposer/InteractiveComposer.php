@@ -16,13 +16,15 @@ final class InteractiveComposer
 		if (($identity = $taskManager->getCompanyIdentity()) !== null) {
 			echo $identity->getLogo() . "\n";
 		}
+
+		echo "\n" . 'Tasks' . "\n" . '=====' . "\n\n";
 		foreach ($taskManager->getSortedTasks() as $task) {
-			echo "\n" . str_repeat('-', 100) . "\n";
-			echo "\e[0;32;40m" . '🍏 [' . $task->getPriority() . ']: ' . $task->getTask()->getName() . "\e[0m\n";
+			echo ConsoleHelpers::terminalRenderLabel('[' . $task->getPriority() . '] ' . $task->getTask()->getName()) . "\n";
+			echo ConsoleHelpers::terminalRenderLabel(str_repeat('-', 3 + mb_strlen($task->getTask()->getName(), 'UTF-8') + strlen((string) $task->getPriority()))) . "\n\n";
 
 			try {
 				if ($task->getTask()->run() === true) {
-					echo "\n\n" . '👍 ' . "\e[1;33;40m" . 'Task was successful. 👍' . "\e[0m";
+					echo "\n\n\e[0;32;40m" . '[OK] Task was successful.' . "\e[0m\n\n";
 				} else {
 					echo "\n\n";
 					ConsoleHelpers::terminalRenderError('Task "' . $task->getClassName() . '" failed!');
@@ -43,6 +45,8 @@ final class InteractiveComposer
 			}
 		}
 
-		echo "\n" . str_repeat('-', 100) . "\n\n\n" . 'All tasks completed successfully.' . "\n\n\n";
+		echo "\n\n";
+		ConsoleHelpers::terminalRenderSuccess('All tasks has been completed successfully.');
+		echo "\n\n";
 	}
 }
