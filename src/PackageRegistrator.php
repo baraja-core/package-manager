@@ -140,7 +140,7 @@ class PackageRegistrator
 			FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
 			if (\is_dir($tempDir = dirname(__DIR__, 4) . '/temp')) {
 				foreach (new \FilesystemIterator($tempDir) as $item) {
-					FileSystem::delete((string) $item->getPathname());
+					FileSystem::delete(\is_string($item) ? $item : (string) $item->getPathname());
 				}
 			}
 		} catch (\Throwable $e) {
