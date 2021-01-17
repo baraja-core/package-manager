@@ -21,6 +21,9 @@ jobs:
 
         # Install app deps
         composer install --no-interaction --prefer-dist
+        
+    - name: The PHP Security Checker
+      uses: symfonycorp/security-checker-action@v2
 
     # Check code checker and coding standards
     - name: Check coding standards
