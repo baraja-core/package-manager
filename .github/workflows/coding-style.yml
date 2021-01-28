@@ -14,7 +14,7 @@ jobs:
           coverage: none
 
       - run: composer create-project nette/code-checker temp/code-checker ^3 --no-progress
-      - run: php temp/code-checker/code-checker --strict-types --no-progress -i tests/Tracy/fixtures -i examples/assets
+      - run: php temp/code-checker/code-checker --strict-types --no-progress
 
   nette_cs:
     name: Nette Coding Standard
@@ -27,12 +27,4 @@ jobs:
           coverage: none
 
       - run: composer create-project nette/coding-standard temp/coding-standard ^3 --no-progress --ignore-platform-reqs
-      - run: php temp/coding-standard/ecs check src tests tools
-
-  js:
-    name: Code Standard Checker (JS)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - run: npm install eslint
-      - run: npx eslint "src/**/*.js"
+      - run: php temp/coding-standard/ecs check src
