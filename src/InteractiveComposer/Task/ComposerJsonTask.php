@@ -87,6 +87,7 @@ final class ComposerJsonTask extends BaseTask
 			$composer = is_file($path) ? Json::decode(FileSystem::read($path), Json::FORCE_ARRAY) : [];
 			if (isset($composer['require'])) {
 				foreach (array_keys($composer['require']) as $dependency) {
+					$dependency = (string) $dependency;
 					if (isset($return[$dependency]) === false && Strings::startsWith($dependency, 'ext-')) {
 						$return[$dependency] = $dependency;
 					}
