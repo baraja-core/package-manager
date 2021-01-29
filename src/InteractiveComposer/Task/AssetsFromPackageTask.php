@@ -88,7 +88,7 @@ final class AssetsFromPackageTask extends BaseTask
 				} else {
 					$safeCopy = $this->safeCopy(
 						$basePath . '/' . $pathWithFile,
-						(string) preg_replace('/^(.*?)(\.dist)?$/', '$1', $projectFilePath)
+						(string) preg_replace('/^(.*?)(\.dist)?$/', '$1', $projectFilePath),
 					);
 
 					if ($safeCopy === null || $safeCopy === true) {
@@ -125,7 +125,7 @@ final class AssetsFromPackageTask extends BaseTask
 
 			throw new \RuntimeException(
 				'Can not copy file "' . $from . '" => "' . $to . '"'
-				. ($return !== null ? ': ' . $return : '')
+				. ($return !== null ? ': ' . $return : ''),
 			);
 		}
 

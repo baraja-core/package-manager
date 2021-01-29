@@ -30,7 +30,7 @@ final class Generator
 		$packageDescriptor = new PackageDescriptorEntity;
 
 		$composerJson = Helpers::haystackToArray(
-			json_decode((string) file_get_contents($this->projectRoot . '/composer.json'))
+			json_decode((string) file_get_contents($this->projectRoot . '/composer.json')),
 		);
 
 		$packageDescriptor->setComposer($composerJson);
@@ -60,7 +60,11 @@ final class Generator
 
 		// Find other packages
 		foreach (new \DirectoryIterator($this->projectRoot . '/vendor') as $vendorNamespace) {
-			if ($vendorNamespace->isDir() === true && ($namespace = $vendorNamespace->getFilename()) !== '.' && $namespace !== '..') {
+			if (
+				$vendorNamespace->isDir() === true
+				&& ($namespace = $vendorNamespace->getFilename()) !== '.'
+				&& $namespace !== '..'
+			) {
 				foreach (new \DirectoryIterator($this->projectRoot . '/vendor/' . $namespace) as $packageName) {
 					if ($packageName->isDir() === true && ($name = $packageName->getFilename()) !== '.' && $name !== '..'
 						&& isset($packageDirs[$package = $namespace . '/' . $name]) === false
@@ -91,7 +95,10 @@ final class Generator
 				trigger_error('File "config.neon" is deprecated for Nette 3.0, please use "common.neon" for path: "' . $path . '".');
 				$configPath = $path . '/config.neon';
 			}
-			if (is_file($composerPath = $path . '/composer.json') && json_decode((string) file_get_contents($composerPath)) === null) {
+			if (
+				is_file($composerPath = $path . '/composer.json')
+				&& json_decode((string) file_get_contents($composerPath)) === null
+			) {
 				PackageDescriptorCompileException::composerJsonIsBroken($name);
 			}
 
@@ -151,7 +158,7 @@ final class Generator
 				if (($classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName()) === false) {
 					throw new \RuntimeException(
 						'Composer classLoader (class "' . ClassLoader::class . '") does not exist. '
-						. 'Please check your Composer installation.'
+						. 'Please check your Composer installation.',
 					);
 				}
 				$lockFile = \dirname($classLoader) . '/../../composer.lock';

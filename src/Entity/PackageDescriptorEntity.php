@@ -77,7 +77,7 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 				$package['version'],
 				$package['dependency'],
 				$package['config'] ?? [],
-				$package['composer']
+				$package['composer'],
 			);
 		}
 

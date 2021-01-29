@@ -7,7 +7,6 @@ namespace Baraja\PackageManager\Exception;
 
 final class PackageDescriptorCompileException extends PackageDescriptorException
 {
-
 	/**
 	 * @throws PackageDescriptorCompileException
 	 */

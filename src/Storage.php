@@ -28,12 +28,16 @@ final class Storage
 	private ?PackageDescriptorEntityInterface $descriptor = null;
 
 
-	public function __construct(string $basePath, string $projectRoot, string $configPackagePath, string $configLocalPath)
-	{
+	public function __construct(
+		string $basePath,
+		string $projectRoot,
+		string $configPackagePath,
+		string $configLocalPath
+	) {
 		$this->basePath = $basePath;
 		$this->configPackagePath = $configPackagePath;
 		$this->configLocalPath = $configLocalPath;
-		$this->composerHash = (@md5_file($projectRoot . '/vendor/composer/installed.json')) ?: md5((string) time());
+		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string) time());
 		$this->generator = new Generator($projectRoot);
 	}
 
@@ -108,7 +112,9 @@ final class Storage
 			$tree = [];
 			foreach ($packageInfos as $packageInfo) {
 				$packageData = $packageInfo['data']['data'] ?? $packageInfo['data'];
-				$neonData = \is_array($packageData) ? $packageData : Neon::decode((string) $packageData);
+				$neonData = \is_array($packageData)
+					? $packageData
+					: Neon::decode((string) $packageData);
 				foreach ($neonData as $treeKey => $treeValue) {
 					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
 						unset($neonData[$treeKey]);
@@ -215,7 +221,7 @@ final class Storage
 				$property->setAccessible(true);
 				$class->addProperty(
 					ltrim($property->getName(), '_'),
-					$this->makeScalarValueOnly($property->getValue($packageDescriptorEntity))
+					$this->makeScalarValueOnly($property->getValue($packageDescriptorEntity)),
 				)->setProtected()
 					->setType((static function (?\ReflectionType $type) {
 						if ($type instanceof \ReflectionNamedType) {
@@ -231,7 +237,7 @@ final class Storage
 			$this->getPath(),
 			'<?php' . "\n\n"
 			. 'declare(strict_types=1);' . "\n\n"
-			. $class
+			. $class,
 		);
 
 		return $packageDescriptorEntity;
@@ -273,7 +279,8 @@ final class Storage
 				throw new \RuntimeException(
 					'Can not create PackageDescriptionEntity file: ' . $e->getMessage() . "\n"
 					. 'Package Manager tried to create a directory "' . $dir . '" and a file "' . $entityFilePath . '" inside.',
-					$e->getCode(), $e
+					$e->getCode(),
+					$e,
 				);
 			}
 		}
