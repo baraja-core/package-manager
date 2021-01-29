@@ -96,7 +96,7 @@ final class ExtensionSorter
 			if ($return === []) {
 				$position = 0;
 			} else {
-				foreach ($return as $returnPosition => $returnItem) {
+				foreach (array_keys($return) as $returnPosition) {
 					try {
 						if (self::canBeItemAddedHere($candidate, $returnPosition, $return, $registered)) {
 							$position = $returnPosition;

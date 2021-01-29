@@ -16,8 +16,6 @@ class PackageRegistrator
 {
 	private static string $projectRoot;
 
-	private static string $configPath;
-
 	private static string $configPackagePath;
 
 	private static string $configLocalPath;
@@ -72,7 +70,6 @@ class PackageRegistrator
 
 		$created = true;
 		self::$projectRoot = rtrim($projectRoot, '/');
-		self::$configPath = self::$projectRoot . '/app/config/common.neon';
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
 		$storage = new Storage($tempPath, $projectRoot, self::$configPackagePath, self::$configLocalPath);

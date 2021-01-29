@@ -76,7 +76,7 @@ final class AssetsFromPackageTask extends BaseTask
 				$projectFilePath = rtrim($projectRoot, '/') . '/' . ltrim($pathWithFile, '/');
 
 				if (\is_dir($basePath . '/' . $pathWithFile)) {
-					if (\is_dir($projectFilePath) || \mkdir($projectFilePath, 0777, true)) {
+					if (\is_dir($projectFilePath) || \mkdir($projectFilePath, 0_777, true)) {
 						echo '.';
 					} else {
 						throw new \RuntimeException('Can not create directory "' . $projectFilePath . '".');
