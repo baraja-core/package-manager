@@ -265,7 +265,7 @@ final class Storage
 			$entityFilePath = $dir . '/PackageDescriptorEntity.php';
 
 			try {
-				FileSystem::createDir($dir, 0777);
+				FileSystem::createDir($dir, 0_777);
 				if (\is_file($entityFilePath) === false) {
 					FileSystem::write($entityFilePath, '');
 				}
@@ -294,8 +294,10 @@ final class Storage
 		if (\is_dir($basePath) === false) {
 			return true;
 		}
-		foreach (Finder::find('*')->in($basePath) as $path => $value) {
-			@unlink($path);
+		foreach (array_keys(iterator_to_array(Finder::find('*')->in($basePath))) as $path) {
+			if (\is_file((string) $path)) {
+				@unlink((string) $path);
+			}
 		}
 
 		return @rmdir($basePath);

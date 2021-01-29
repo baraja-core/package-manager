@@ -166,16 +166,4 @@ final class Helpers
 	{
 		\Baraja\Console\Helpers::terminalRenderError($message);
 	}
-
-
-	/**
-	 * Returns number of characters (not bytes) in UTF-8 string.
-	 * That is the number of Unicode code points which may differ from the number of graphemes.
-	 */
-	private static function length(string $s): int
-	{
-		return function_exists('mb_strlen')
-			? mb_strlen($s, 'UTF-8')
-			: strlen(utf8_decode($s));
-	}
 }
