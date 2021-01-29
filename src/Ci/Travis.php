@@ -40,7 +40,7 @@ class Travis extends AbstractCi
 			'%s/%s/jobs/%s',
 			self::TRAVIS_BASE_URL,
 			$this->env->get('TRAVIS_REPO_SLUG'),
-			$this->env->get('TRAVIS_JOB_ID')
+			$this->env->get('TRAVIS_JOB_ID'),
 		);
 	}
 

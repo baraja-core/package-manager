@@ -23,7 +23,7 @@ class GitLab extends AbstractCi
 	{
 		return TrinaryLogic::createFromBoolean(
 			$this->env->get('CI_MERGE_REQUEST_ID') !== false
-			|| $this->env->get('CI_EXTERNAL_PULL_REQUEST_IID') !== false
+			|| $this->env->get('CI_EXTERNAL_PULL_REQUEST_IID') !== false,
 		);
 	}
 

@@ -40,7 +40,7 @@ class GitHubActions extends AbstractCi
 			'%s/%s/commit/%s/checks',
 			self::GITHUB_BASE_URL,
 			$this->env->get('GITHUB_REPOSITORY'),
-			$this->env->get('GITHUB_SHA')
+			$this->env->get('GITHUB_SHA'),
 		);
 	}
 
@@ -70,7 +70,7 @@ class GitHubActions extends AbstractCi
 		return sprintf(
 			'%s/%s',
 			self::GITHUB_BASE_URL,
-			$this->env->get('GITHUB_REPOSITORY')
+			$this->env->get('GITHUB_REPOSITORY'),
 		);
 	}
 }

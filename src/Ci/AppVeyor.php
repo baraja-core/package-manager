@@ -38,7 +38,7 @@ class AppVeyor extends AbstractCi
 			$this->env->get('APPVEYOR_URL'),
 			$this->env->get('APPVEYOR_ACCOUNT_NAME'),
 			$this->env->get('APPVEYOR_PROJECT_SLUG'),
-			$this->env->get('APPVEYOR_BUILD_ID')
+			$this->env->get('APPVEYOR_BUILD_ID'),
 		);
 	}
 

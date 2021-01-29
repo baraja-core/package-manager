@@ -67,7 +67,9 @@ final class TaskManager
 		foreach ($this->tasks as $task) {
 			try {
 				$priority = ($doc = (new \ReflectionClass($task))->getDocComment()) !== false
-				&& preg_match('/Priority:\s*(\d+)/', $doc, $docParser) ? (int) $docParser[1] : 10;
+				&& preg_match('/Priority:\s*(\d+)/', $doc, $docParser)
+					? (int) $docParser[1]
+					: 10;
 
 				$return[\get_class($task)] = new TaskItem($task, $priority);
 			} catch (\ReflectionException $e) {

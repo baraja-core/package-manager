@@ -73,7 +73,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		if ($this->ask('Create?', ['y', 'n']) === 'y') {
 			file_put_contents($path, Neon::encode(
 				$this->generateMySqlConfig(),
-				Neon::BLOCK
+				Neon::BLOCK,
 			));
 		}
 
@@ -95,7 +95,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		$connection = new \PDO(
 			'mysql:host=' . ($mySqlCredentials = $this->mySqlConnect())['server'],
 			$mySqlCredentials['user'],
-			$mySqlCredentials['password']
+			$mySqlCredentials['password'],
 		);
 
 		$databaseList = [];
@@ -121,7 +121,10 @@ final class ConfigLocalNeonTask extends BaseTask
 			$usedDatabase = $candidateDatabases[0];
 		}
 		while (true) {
-			if ($usedDatabase === null && preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')) {
+			if (
+				$usedDatabase === null
+				&& preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')
+			) {
 				if (isset($databaseList[$usedDatabaseKey = (int) $usedDatabase])) {
 					$usedDatabase = $databaseList[$usedDatabaseKey];
 					break;

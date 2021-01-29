@@ -38,7 +38,7 @@ abstract class BaseTask implements ITask
 	 */
 	final public function getContainer(): Container
 	{
-		/** @var Container|null $container */
+		/** @var Container|null */
 		static $container;
 
 		if ($container === null) {

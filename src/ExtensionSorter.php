@@ -13,7 +13,7 @@ final class ExtensionSorter
 	/** @throws \Error */
 	public function __construct()
 	{
-		throw new \Error('Class ' . \get_class($this) . ' is static and cannot be instantiated.');
+		throw new \Error('Class ' . static::class . ' is static and cannot be instantiated.');
 	}
 
 
@@ -36,7 +36,7 @@ final class ExtensionSorter
 			if (class_exists($type) === false) {
 				throw new \RuntimeException(
 					'Package manager: Extension "' . $type . '" does not exist. Did you use autoload correctly?' . "\n"
-					. 'Hint: Try read article about autoloading: https://php.baraja.cz/autoloading-trid'
+					. 'Hint: Try read article about autoloading: https://php.baraja.cz/autoloading-trid',
 				);
 			}
 
@@ -109,7 +109,7 @@ final class ExtensionSorter
 						if (($castlingTtl[$candidate['type']]++) > self::TRY_SORT_TTL) {
 							throw new \RuntimeException(
 								'Infinite recursion was detected while trying to sort the extension.' . "\n"
-								. 'Possible solution: If you want to register extensions, simplify the conditions so that they do not refute each other.'
+								. 'Possible solution: If you want to register extensions, simplify the conditions so that they do not refute each other.',
 							);
 						}
 						if (\count($candidates) > 1) {
@@ -132,7 +132,7 @@ final class ExtensionSorter
 				throw new \RuntimeException(
 					'Internal conflict in dependencies: Item "' . $candidate['type'] . '" requires conditions that conflict with another extension.' . "\n"
 					. 'To solve this issue: Please check your items configuration and use tree dependencies only.' . "\n"
-					. 'Sucessfully registered extensions: "' . implode('", "', $registered) . '".'
+					. 'Sucessfully registered extensions: "' . implode('", "', $registered) . '".',
 				);
 			}
 		}

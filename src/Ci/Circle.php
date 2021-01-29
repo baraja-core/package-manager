@@ -54,7 +54,7 @@ class Circle extends AbstractCi
 		return sprintf(
 			'%s/%s',
 			$this->env->getString('CIRCLE_PROJECT_USERNAME'),
-			$this->env->getString('CIRCLE_PROJECT_REPONAME')
+			$this->env->getString('CIRCLE_PROJECT_REPONAME'),
 		);
 	}
 

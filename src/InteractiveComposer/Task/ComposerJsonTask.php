@@ -17,7 +17,6 @@ use Nette\Utils\Strings;
  */
 final class ComposerJsonTask extends BaseTask
 {
-
 	/**
 	 * @throws JsonException
 	 * @throws PackageDescriptorCompileException
@@ -60,8 +59,8 @@ final class ComposerJsonTask extends BaseTask
 			(string) preg_replace_callback(
 				'/\n(\s+)/',
 				fn (array $match): string => "\n" . str_replace('    ', "\t", $match[1]),
-				Json::encode($composer, Json::PRETTY)
-			)
+				Json::encode($composer, Json::PRETTY),
+			),
 		);
 
 		echo 'Composer.json has been fixed.';

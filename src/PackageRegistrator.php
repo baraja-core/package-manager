@@ -36,12 +36,23 @@ class PackageRegistrator
 		}
 		if ($projectRoot === null || $tempPath === null) { // path auto detection
 			try {
-				$loaderRc = class_exists(ClassLoader::class) ? new \ReflectionClass(ClassLoader::class) : null;
-				$vendorDir = $loaderRc ? dirname((string) $loaderRc->getFileName(), 2) : null;
+				$loaderRc = class_exists(ClassLoader::class)
+					? new \ReflectionClass(ClassLoader::class)
+					: null;
+				$vendorDir = $loaderRc
+					? dirname((string) $loaderRc->getFileName(), 2)
+					: null;
 			} catch (\ReflectionException $e) {
 				$vendorDir = null;
 			}
-			if ($vendorDir !== null && PHP_SAPI === 'cli' && (strncmp($vendorDir, 'phar://', 7) === 0 || strncmp($vendorDir, '/usr/share', 10) === 0)) {
+			if (
+				$vendorDir !== null
+				&& PHP_SAPI === 'cli'
+				&& (
+					strncmp($vendorDir, 'phar://', 7) === 0
+					|| strncmp($vendorDir, '/usr/share', 10) === 0
+				)
+			) {
 				$vendorDir = (string) preg_replace('/^(.+?[\\\\|\/]vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
 			}
 			if ($projectRoot === null) {
@@ -187,7 +198,7 @@ class PackageRegistrator
 			$ci = null;
 		}
 
-		echo ($ci === null ? 'No detected.' : 'Detected 👍') . "\n";
+		echo($ci === null ? 'No detected.' : 'Detected 👍') . "\n";
 		if ($ci !== null) {
 			echo ' | CI name: ' . $ci->getCiName() . "\n";
 			echo ' | is Pull request? ' . $ci->isPullRequest()->describe() . "\n";
@@ -206,7 +217,7 @@ class PackageRegistrator
 	 */
 	public static function getCiDetect(): ?CiInterface
 	{
-		/** @var CiInterface|null $cache */
+		/** @var CiInterface|null */
 		static $cache;
 		if ($cache === null && ($ciDetector = new CiDetector)->isCiDetected()) {
 			$cache = $ciDetector->detect();
