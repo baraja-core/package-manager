@@ -306,9 +306,8 @@ final class Storage
 
 	/**
 	 * @param mixed|mixed[] $data
-	 * @return mixed|mixed[]
 	 */
-	private function makeScalarValueOnly($data)
+	private function makeScalarValueOnly(mixed $data): mixed
 	{
 		if (\is_array($data) === true) {
 			$return = [];
