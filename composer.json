@@ -9,7 +9,7 @@
 		}
 	],
 	"require": {
-		"php": "^7.4 || ^8.0",
+		"php": "^8.0",
 		"ext-PDO": "*",
 		"ext-json": "*",
 		"baraja-core/nette-symfony-console": "^1.0",
