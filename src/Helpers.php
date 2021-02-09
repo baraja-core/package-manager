@@ -60,11 +60,8 @@ final class Helpers
 	 * Convert Nette SmartObject with private methods to Nette ArrayHash structure.
 	 * While converting call getters, so you get only properties which you can get.
 	 * Function supports recursive objects structure. Public properties will be included.
-	 *
-	 * @param mixed $input
-	 * @return mixed
 	 */
-	public static function haystackToArray($input)
+	public static function haystackToArray(mixed $input): mixed
 	{
 		if (\is_object($input)) {
 			try {
