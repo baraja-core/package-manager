@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class Continuousphp extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('CONTINUOUSPHP') === 'continuousphp';
+		return $environment->get('CONTINUOUSPHP') === 'continuousphp';
 	}
 
 

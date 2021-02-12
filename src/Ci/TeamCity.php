@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class TeamCity extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('TEAMCITY_VERSION') !== false;
+		return $environment->get('TEAMCITY_VERSION') !== false;
 	}
 
 

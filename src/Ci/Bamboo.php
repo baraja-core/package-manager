@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class Bamboo extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('bamboo_buildKey') !== false;
+		return $environment->get('bamboo_buildKey') !== false;
 	}
 
 

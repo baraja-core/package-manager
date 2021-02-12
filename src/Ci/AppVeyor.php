@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class AppVeyor extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('APPVEYOR') === 'True';
+		return $environment->get('APPVEYOR') === 'True';
 	}
 
 

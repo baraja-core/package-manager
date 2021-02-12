@@ -10,10 +10,10 @@ namespace Baraja\PackageManager;
  */
 abstract class AbstractCi implements CiInterface
 {
-	protected Env $env;
+	protected Environment $env;
 
 
-	public function __construct(Env $env)
+	public function __construct(Environment $env)
 	{
 		$this->env = $env;
 	}

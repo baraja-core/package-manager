@@ -10,9 +10,9 @@ class GitHubActions extends AbstractCi
 	public const GITHUB_BASE_URL = 'https://github.com';
 
 
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('GITHUB_ACTIONS') !== false;
+		return $environment->get('GITHUB_ACTIONS') !== false;
 	}
 
 
