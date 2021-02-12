@@ -8,14 +8,14 @@ namespace Baraja\PackageManager;
 /**
  * Encapsulate access to the environment variables
  */
-class Env
+final class Environment
 {
-	/**
-	 * @return string|false Environment variable value or false if the variable does not exist
-	 */
-	public function get(string $name)
+	/** Environment variable value or false if the variable does not exist. */
+	public function get(string $name): string|false
 	{
-		return getenv($name);
+		$env = getenv($name);
+
+		return \is_array($env) === true ? false : $env;
 	}
 
 

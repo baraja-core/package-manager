@@ -10,9 +10,9 @@ class Travis extends AbstractCi
 	public const TRAVIS_BASE_URL = 'https://travis-ci.org';
 
 
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('TRAVIS') !== false;
+		return $environment->get('TRAVIS') !== false;
 	}
 
 

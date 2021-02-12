@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class Buddy extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('BUDDY') !== false;
+		return $environment->get('BUDDY') !== false;
 	}
 
 
