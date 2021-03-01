@@ -65,7 +65,16 @@ class PackageRegistrator
 		}
 		if (Debugger::$logDirectory === null) {
 			FileSystem::createDir($projectRoot . '/log');
-			Debugger::enable(false, $projectRoot . '/log');
+			try {
+				Debugger::enable(false, $projectRoot . '/log');
+			} catch (\Throwable $e) {
+				if (PHP_SAPI === 'cli') {
+					ConsoleHelpers::terminalRenderError($e->getMessage());
+					ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
+				} else {
+					trigger_error($e->getMessage());
+				}
+			}
 		}
 
 		$created = true;
@@ -156,22 +165,29 @@ class PackageRegistrator
 		}
 
 		echo 'Init Composer autoload' . "\n" . '======================' . "\n";
-		$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
-		if (\is_file($composerFileAutoloadPath)) {
-			foreach (require $composerFileAutoloadPath as $file) {
-				if (strpos((string) file_get_contents($file), '--package-registrator-task--') !== false) {
-					require_once $file;
+		try {
+			$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
+			if (\is_file($composerFileAutoloadPath)) {
+				foreach (require $composerFileAutoloadPath as $file) {
+					if (strpos((string) file_get_contents($file), '--package-registrator-task--') !== false) {
+						require_once $file;
+					}
 				}
+				ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
+			} else {
+				ConsoleHelpers::terminalRenderError('Can not load autoload files.');
 			}
-			ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
-		} else {
-			ConsoleHelpers::terminalRenderError('Can not load autoload files.');
+		} catch (\Throwable $e) {
+			ConsoleHelpers::terminalRenderError($e->getMessage());
+			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
+			Debugger::log($e, 'critical');
+			echo 'Error was logged to file.' . "\n\n";
 		}
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
 			(new InteractiveComposer)->run(TaskManager::get());
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 			ConsoleHelpers::terminalRenderError($e->getMessage());
 			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
 			Debugger::log($e, 'critical');
