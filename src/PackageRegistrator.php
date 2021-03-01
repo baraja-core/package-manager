@@ -8,7 +8,9 @@ namespace Baraja\PackageManager;
 use Baraja\Console\Helpers as ConsoleHelpers;
 use Baraja\PackageManager\Composer\TaskManager;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
-use Composer\Autoload\ClassLoader;
+use Baraja\PathResolvers\Resolvers\RootDirResolver;
+use Baraja\PathResolvers\Resolvers\TempDirResolver;
+use Baraja\PathResolvers\Resolvers\VendorResolver;
 use Nette\Utils\FileSystem;
 use Tracy\Debugger;
 
@@ -25,48 +27,32 @@ class PackageRegistrator
 	private static bool $configurationMode = false;
 
 
-	public function __construct(?string $projectRoot = null, ?string $tempPath = null)
+	public function __construct(?string $rootDir = null, ?string $tempDir = null)
 	{
 		static $created = false;
 
 		if ($created === true) {
 			return;
 		}
-		if ($projectRoot === null || $tempPath === null) { // path auto detection
-			try {
-				$loaderRc = class_exists(ClassLoader::class)
-					? new \ReflectionClass(ClassLoader::class)
-					: null;
-				$vendorDir = $loaderRc
-					? dirname((string) $loaderRc->getFileName(), 2)
-					: null;
-			} catch (\ReflectionException $e) {
-				$vendorDir = null;
-			}
-			if (
-				$vendorDir !== null
-				&& PHP_SAPI === 'cli'
-				&& (
-					strncmp($vendorDir, 'phar://', 7) === 0
-					|| strncmp($vendorDir, '/usr/share', 10) === 0
-				)
-			) {
-				$vendorDir = (string) preg_replace('/^(.+?[\\\\|\/]vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
-			}
-			if ($projectRoot === null) {
-				if ($vendorDir === null) {
-					throw new \RuntimeException('Can not resolve "vendorDir". Did you generate Composer autoloader by "composer install" or "composer dump" command?');
+		if ($rootDir === null || $tempDir === null) { // path auto detection
+			$rootDirResolver = new RootDirResolver(new VendorResolver);
+			if ($rootDir === null) {
+				$rootDir = $rootDirResolver->get();
+				if (PHP_SAPI === 'cli') {
+					echo 'Auto detected rootDir: ' . $rootDir;
 				}
-				$projectRoot = dirname($vendorDir);
 			}
-			if ($tempPath === null) {
-				$tempPath = rtrim($projectRoot, '/') . '/temp';
+			if ($tempDir === null) {
+				$tempDir = (new TempDirResolver($rootDirResolver))->get();
+				if (PHP_SAPI === 'cli') {
+					echo 'Auto detected tempDir: ' . $tempDir;
+				}
 			}
 		}
 		if (Debugger::$logDirectory === null) {
-			FileSystem::createDir($projectRoot . '/log');
+			FileSystem::createDir($rootDir . '/log');
 			try {
-				Debugger::enable(false, $projectRoot . '/log');
+				Debugger::enable(false, $rootDir . '/log');
 			} catch (\Throwable $e) {
 				if (PHP_SAPI === 'cli') {
 					ConsoleHelpers::terminalRenderError($e->getMessage());
@@ -78,10 +64,10 @@ class PackageRegistrator
 		}
 
 		$created = true;
-		self::$projectRoot = rtrim($projectRoot, '/');
+		self::$projectRoot = rtrim($rootDir, DIRECTORY_SEPARATOR);
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
-		$storage = new Storage($tempPath, $projectRoot, self::$configPackagePath, self::$configLocalPath);
+		$storage = new Storage($tempDir, $rootDir, self::$configPackagePath, self::$configLocalPath);
 		try {
 			self::$packageDescriptorEntity = $storage->load();
 		} catch (PackageDescriptorException $e) {
