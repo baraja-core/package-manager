@@ -28,10 +28,21 @@ final class Generator
 	public function run(): PackageDescriptorEntityInterface
 	{
 		$packageDescriptor = new PackageDescriptorEntity;
+		$path = $this->projectRoot . '/composer.json';
+
+		if (is_file($path) === false) {
+			throw new \RuntimeException('File "composer.json" on path "' . $path . '" does not exist.');
+		}
 
 		$composerJson = Helpers::haystackToArray(
 			json_decode((string) file_get_contents($this->projectRoot . '/composer.json')),
 		);
+
+		if ($composerJson === [] || $composerJson === '') {
+			throw new \RuntimeException(
+				'File "composer.json" can not be empty. Did you check path "' . $path . '"?'
+			);
+		}
 
 		$packageDescriptor->setComposer($composerJson);
 		$packageDescriptor->setPackages($packages = $this->getPackages($composerJson));
