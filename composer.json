@@ -13,6 +13,7 @@
 		"ext-PDO": "*",
 		"ext-json": "*",
 		"baraja-core/nette-symfony-console": "^1.0",
+		"baraja-core/path-resolvers": "^1.0",
 		"nette/di": "^3.0",
 		"nette/bootstrap": "^3.0",
 		"nette/application": "^3.0",
