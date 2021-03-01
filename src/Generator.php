@@ -35,7 +35,7 @@ final class Generator
 		}
 
 		$composerJson = Helpers::haystackToArray(
-			json_decode((string) file_get_contents($this->projectRoot . '/composer.json')),
+			json_decode((string) file_get_contents($path)),
 		);
 
 		if ($composerJson === [] || $composerJson === '') {
