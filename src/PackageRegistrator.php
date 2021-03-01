@@ -38,15 +38,9 @@ class PackageRegistrator
 			$rootDirResolver = new RootDirResolver(new VendorResolver);
 			if ($rootDir === null) {
 				$rootDir = $rootDirResolver->get();
-				if (PHP_SAPI === 'cli') {
-					echo 'Auto detected rootDir: ' . $rootDir;
-				}
 			}
 			if ($tempDir === null) {
 				$tempDir = (new TempDirResolver($rootDirResolver))->get();
-				if (PHP_SAPI === 'cli') {
-					echo 'Auto detected tempDir: ' . $tempDir;
-				}
 			}
 		}
 		if (Debugger::$logDirectory === null) {
