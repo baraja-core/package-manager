@@ -40,7 +40,7 @@ final class Generator
 
 		if ($composerJson === [] || $composerJson === '') {
 			throw new \RuntimeException(
-				'File "composer.json" can not be empty. Did you check path "' . $path . '"?'
+				'File "composer.json" can not be empty. Did you check path "' . $path . '"?',
 			);
 		}
 
