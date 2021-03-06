@@ -15,12 +15,6 @@ use Nette\Utils\Finder;
 
 final class Storage
 {
-	private string $basePath;
-
-	private string $configPackagePath;
-
-	private string $configLocalPath;
-
 	private string $composerHash;
 
 	private Generator $generator;
@@ -29,14 +23,11 @@ final class Storage
 
 
 	public function __construct(
-		string $basePath,
-		string $projectRoot,
-		string $configPackagePath,
-		string $configLocalPath
+		private string $basePath,
+		private string $configPackagePath,
+		private string $configLocalPath,
+		string $projectRoot
 	) {
-		$this->basePath = $basePath;
-		$this->configPackagePath = $configPackagePath;
-		$this->configLocalPath = $configLocalPath;
 		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string) time());
 		$this->generator = new Generator($projectRoot);
 	}

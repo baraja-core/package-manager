@@ -12,12 +12,9 @@ use Nette\DI\Container;
 
 abstract class BaseTask implements ITask
 {
-	protected PackageRegistrator $packageRegistrator;
-
-
-	final public function __construct(PackageRegistrator $packageRegistrator)
-	{
-		$this->packageRegistrator = $packageRegistrator;
+	final public function __construct(
+		protected PackageRegistrator $packageRegistrator
+	) {
 	}
 
 
@@ -42,6 +39,7 @@ abstract class BaseTask implements ITask
 		static $container;
 
 		if ($container === null) {
+			// TODO: Use path resolvers
 			if (\is_dir($rootDir = dirname(__DIR__, 5)) === false) {
 				throw new \RuntimeException('Root dir "' . $rootDir . '" does not exist.');
 			}
