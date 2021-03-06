@@ -12,12 +12,9 @@ use Nette\Neon\Neon;
 
 final class Generator
 {
-	private string $projectRoot;
-
-
-	public function __construct(string $projectRoot)
-	{
-		$this->projectRoot = $projectRoot;
+	public function __construct(
+		private string $projectRoot
+	) {
 	}
 
 
@@ -187,7 +184,7 @@ final class Generator
 
 		foreach ($packages as $package) {
 			$return[$package->name] = $package->version
-				. (strpos($package->version, 'dev') === false ? '' : ' #' . substr($package->source->reference, 0, 4));
+				. (!str_contains($package->version, 'dev') ? '' : ' #' . substr($package->source->reference, 0, 4));
 		}
 
 		return $return;

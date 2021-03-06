@@ -61,7 +61,7 @@ class PackageRegistrator
 		self::$projectRoot = rtrim($rootDir, DIRECTORY_SEPARATOR);
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
-		$storage = new Storage($tempDir, $rootDir, self::$configPackagePath, self::$configLocalPath);
+		$storage = new Storage($tempDir, self::$configPackagePath, self::$configLocalPath, $rootDir);
 		try {
 			self::$packageDescriptorEntity = $storage->load();
 		} catch (PackageDescriptorException $e) {

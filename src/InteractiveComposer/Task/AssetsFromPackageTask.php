@@ -18,7 +18,7 @@ final class AssetsFromPackageTask extends BaseTask
 			if (\count($this->packageRegistrator->getPackageDescriptorEntity()->getPackagest()) === 0) {
 				return false;
 			}
-		} catch (PackageDescriptorCompileException $e) {
+		} catch (PackageDescriptorCompileException) {
 			return false;
 		}
 
