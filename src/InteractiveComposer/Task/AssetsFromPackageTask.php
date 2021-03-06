@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Baraja\PackageManager\Composer;
 
 
+use Baraja\Console\Helpers as ConsoleHelpers;
 use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
 
 /**
@@ -22,7 +23,9 @@ final class AssetsFromPackageTask extends BaseTask
 			return false;
 		}
 
-		echo 'Warning: This task is deprecated and will be removed in PackageManager v4.';
+
+		echo ConsoleHelpers::terminalRenderLabel('Warning') . ': ';
+		echo 'This task is deprecated and will be removed in PackageManager v4.';
 		echo 'BasePath:    ' . ($basePath = \dirname(__DIR__, 5) . '/') . "\n";
 		echo 'ProjectRoot: ' . \rtrim(\dirname($basePath), '/') . '/';
 
