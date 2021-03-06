@@ -22,9 +22,11 @@ final class AssetsFromPackageTask extends BaseTask
 			return false;
 		}
 
+		echo 'Warning: This task is deprecated and will be removed in PackageManager v4.';
 		echo 'BasePath:    ' . ($basePath = \dirname(__DIR__, 5) . '/') . "\n";
 		echo 'ProjectRoot: ' . \rtrim(\dirname($basePath), '/') . '/';
 
+		/** @deprecated since 2021-03-06 */
 		foreach (glob($basePath . '*') ?: [] as $namespace) {
 			if (\is_dir($namespace)) {
 				foreach (glob($namespace . '/*') ?: [] as $package) {
@@ -45,6 +47,7 @@ final class AssetsFromPackageTask extends BaseTask
 	}
 
 
+	/** @deprecated since 2021-03-06 */
 	private function processPackage(string $path, string $basePath): void
 	{
 		$this->copyInstallDir($path . 'install/', \rtrim(\dirname($basePath), '/') . '/');
@@ -52,11 +55,18 @@ final class AssetsFromPackageTask extends BaseTask
 	}
 
 
+	/** @deprecated since 2021-03-06 */
 	private function copyInstallDir(string $source, string $projectRoot, bool $forceUpdate = false): bool
 	{
 		if (\is_dir($source) === false) {
 			return false;
 		}
+
+		$message = 'Install and update dir is deprecated and will be removed in PackageManager v4. '
+			. 'Please use some proxy logic like "baraja-core/assets-loader". '
+			. 'More info: https://github.com/baraja-core/assets-loader';
+		echo "\n\n" . $message . "\n\n";
+		trigger_error($message);
 
 		echo '|';
 
@@ -68,6 +78,7 @@ final class AssetsFromPackageTask extends BaseTask
 	}
 
 
+	/** @deprecated since 2021-03-06 */
 	private function copyFilesRecursively(string $basePath, string $path, string $projectRoot, bool $forceUpdate): void
 	{
 		foreach (scandir(rtrim((string) preg_replace('/\/+/', '/', $basePath . '/' . $path), '/'), 1) ?: [] as $file) {
@@ -103,6 +114,7 @@ final class AssetsFromPackageTask extends BaseTask
 
 
 	/**
+	 * @deprecated since 2021-03-06
 	 * Copy file with exactly content or throw exception.
 	 * If case of error try repeat copy 3 times by $ttl.
 	 */
