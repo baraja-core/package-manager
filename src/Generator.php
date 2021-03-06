@@ -182,7 +182,7 @@ final class Generator
 
 			$composer = @json_decode((string) file_get_contents((string) $lockFile)); // @ may not exist or be valid
 			$packages = (array) @$composer->packages;
-			usort($packages, fn ($a, $b) => strcmp($a->name, $b->name));
+			usort($packages, fn($a, $b) => strcmp($a->name, $b->name));
 		}
 
 		foreach ($packages as $package) {
