@@ -76,7 +76,7 @@ final class TaskManager
 			}
 		}
 
-		usort($return, fn (TaskItem $a, TaskItem $b): int => $a->getPriority() < $b->getPriority() ? 1 : -1);
+		usort($return, fn(TaskItem $a, TaskItem $b): int => $a->getPriority() < $b->getPriority() ? 1 : -1);
 
 		return $return;
 	}

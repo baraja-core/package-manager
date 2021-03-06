@@ -58,7 +58,7 @@ final class ComposerJsonTask extends BaseTask
 			$path,
 			(string) preg_replace_callback(
 				'/\n(\s+)/',
-				fn (array $match): string => "\n" . str_replace('    ', "\t", $match[1]),
+				fn(array $match): string => "\n" . str_replace('    ', "\t", $match[1]),
 				Json::encode($composer, Json::PRETTY),
 			),
 		);
