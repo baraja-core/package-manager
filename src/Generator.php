@@ -86,7 +86,7 @@ final class Generator
 		$return = [];
 		foreach ($packageDirs as $name => $dependency) {
 			if (!preg_match('/^(php|ext-\w+|[a-z0-9-_]+\/[a-z0-9-_]+)$/', $name)) {
-				throw new \RuntimeException('Composer 2.0 compatibility: Package name "' . $name . '" is invalid, it must contain only lower english characters.');
+				trigger_error('Composer 2.0 compatibility: Package name "' . $name . '" is invalid, it must contain only lower english characters.');
 			}
 			if (is_dir($path = $this->projectRoot . '/vendor/' . ($name = mb_strtolower($name, 'UTF-8'))) === false) {
 				continue;
