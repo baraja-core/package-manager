@@ -69,7 +69,7 @@ final class TaskManager
 					? (int) $docParser[1]
 					: 10;
 
-				$return[\get_class($task)] = new TaskItem($task, $priority);
+				$return[$task::class] = new TaskItem($task, $priority);
 			} catch (\ReflectionException) {
 				// Silence is golden.
 			}

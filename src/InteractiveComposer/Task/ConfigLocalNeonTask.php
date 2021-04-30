@@ -124,16 +124,17 @@ final class ConfigLocalNeonTask extends BaseTask
 			$usedDatabase = $candidateDatabases[0];
 		}
 		while (true) {
-			if (
-				$usedDatabase === null
-				&& preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')
-			) {
-				if (isset($databaseList[$usedDatabaseKey = (int) $usedDatabase])) {
-					$usedDatabase = $databaseList[$usedDatabaseKey];
-					break;
-				}
+			if ($usedDatabase === null) {
+				$usedDatabase = (string) $this->ask('Which database use? Type number or specific name. Type "new" for create new.');
+				if (preg_match('/^\d+$/',$usedDatabase)) {
+					$usedDatabaseKey = (int) $usedDatabase;
+					if (isset($databaseList[$usedDatabaseKey])) {
+						$usedDatabase = $databaseList[$usedDatabaseKey];
+						break;
+					}
 
-				echo 'Selection "' . $usedDatabase . '" is out of range.' . "\n";
+					echo 'Selection "' . $usedDatabase . '" is out of range.' . "\n";
+				}
 			}
 			if (\in_array($usedDatabase, $databaseList, true)) {
 				break;
