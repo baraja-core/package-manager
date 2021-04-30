@@ -67,14 +67,16 @@ final class Generator
 
 		// Find other packages
 		foreach (new \DirectoryIterator($this->projectRoot . '/vendor') as $vendorNamespace) {
-			if (
-				$vendorNamespace->isDir() === true
-				&& ($namespace = $vendorNamespace->getFilename()) !== '.'
-				&& $namespace !== '..'
-			) {
+			$namespace = $vendorNamespace->getFilename();
+			if ($namespace !== '.' && $namespace !== '..' && $vendorNamespace->isDir() === true) {
 				foreach (new \DirectoryIterator($this->projectRoot . '/vendor/' . $namespace) as $packageName) {
-					if ($packageName->isDir() === true && ($name = $packageName->getFilename()) !== '.' && $name !== '..'
-						&& isset($packageDirs[$package = $namespace . '/' . $name]) === false
+					$name = $packageName->getFilename();
+					$package = $namespace . '/' . $name;
+					if (
+						$name !== '.'
+						&& $name !== '..'
+						&& isset($packageDirs[$package]) === false
+						&& $packageName->isDir() === true
 					) {
 						$packageDirs[$package] = '*';
 					}
@@ -87,7 +89,9 @@ final class Generator
 			if (!preg_match('/^(php|ext-\w+|[a-z0-9-_]+\/[a-z0-9-_]+)$/', $name)) {
 				trigger_error('Composer 2.0 compatibility: Package name "' . $name . '" is invalid, it must contain only lower english characters.');
 			}
-			if (is_dir($path = $this->projectRoot . '/vendor/' . ($name = mb_strtolower($name, 'UTF-8'))) === false) {
+			$name = mb_strtolower($name, 'UTF-8');
+			$path = $this->projectRoot . '/vendor/' . $name;
+			if (is_dir($path) === false) {
 				continue;
 			}
 
@@ -102,10 +106,8 @@ final class Generator
 				trigger_error('File "config.neon" is deprecated for Nette 3.0, please use "common.neon" for path: "' . $path . '".');
 				$configPath = $path . '/config.neon';
 			}
-			if (
-				is_file($composerPath = $path . '/composer.json')
-				&& json_decode((string) file_get_contents($composerPath)) === null
-			) {
+			$composerPath = $path . '/composer.json';
+			if (is_file($composerPath) && json_decode((string) file_get_contents($composerPath)) === null) {
 				PackageDescriptorCompileException::composerJsonIsBroken($name);
 			}
 

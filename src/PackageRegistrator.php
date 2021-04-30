@@ -135,9 +135,10 @@ class PackageRegistrator
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
-			if (\is_dir($tempDir = dirname(__DIR__, 4) . '/temp')) {
+			$tempDir = dirname(__DIR__, 4) . '/temp';
+			if (is_dir($tempDir)) {
 				foreach (new \FilesystemIterator($tempDir) as $item) {
-					FileSystem::delete(\is_string($item) ? $item : (string) $item->getPathname());
+					FileSystem::delete(is_string($item) ? $item : (string) $item->getPathname());
 				}
 			}
 		} catch (\Throwable $e) {
@@ -147,7 +148,7 @@ class PackageRegistrator
 		echo 'Init Composer autoload' . "\n" . '======================' . "\n";
 		try {
 			$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
-			if (\is_file($composerFileAutoloadPath)) {
+			if (is_file($composerFileAutoloadPath)) {
 				foreach (require $composerFileAutoloadPath as $file) {
 					if (str_contains((string) file_get_contents($file), '--package-registrator-task--')) {
 						require_once $file;
@@ -212,8 +213,11 @@ class PackageRegistrator
 	{
 		/** @var CiInterface|null */
 		static $cache;
-		if ($cache === null && ($ciDetector = new CiDetector)->isCiDetected()) {
-			$cache = $ciDetector->detect();
+		if ($cache === null) {
+			$ciDetector = new CiDetector;
+			if ($ciDetector->isCiDetected()) {
+				$cache = $ciDetector->detect();
+			}
 		}
 
 		return $cache;

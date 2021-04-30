@@ -36,7 +36,8 @@ final class Storage
 	public function load(): PackageDescriptorEntityInterface
 	{
 		if ($this->descriptor === null) {
-			if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
+			$path = $this->getPath();
+			if (trim($path) === '' || is_file($path) === false || filesize($path) < 10) {
 				$this->descriptor = $this->save();
 			}
 			require_once $path;
@@ -150,7 +151,9 @@ final class Storage
 					return $score;
 				};
 
-				if (($a = $score($left)) > ($b = $score($right))) {
+				$a = $score($left);
+				$b = $score($right);
+				if ($a > $b) {
 					return -1;
 				}
 
@@ -295,12 +298,9 @@ final class Storage
 	}
 
 
-	/**
-	 * @param mixed|mixed[] $data
-	 */
 	private function makeScalarValueOnly(mixed $data): mixed
 	{
-		if (\is_array($data) === true) {
+		if (is_iterable($data) === true) {
 			$return = [];
 			foreach ($data as $key => $value) {
 				if (is_object($value) === false) {
