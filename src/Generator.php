@@ -13,7 +13,7 @@ use Nette\Neon\Neon;
 final class Generator
 {
 	public function __construct(
-		private string $projectRoot
+		private string $projectRoot,
 	) {
 	}
 
@@ -25,8 +25,8 @@ final class Generator
 	public function run(): PackageDescriptorEntityInterface
 	{
 		$packageDescriptor = new PackageDescriptorEntity;
-		$path = $this->projectRoot . '/composer.json';
 
+		$path = $this->projectRoot . '/composer.json';
 		if (is_file($path) === false) {
 			throw new \RuntimeException('File "composer.json" on path "' . $path . '" does not exist.');
 		}
@@ -34,7 +34,6 @@ final class Generator
 		$composerJson = Helpers::haystackToArray(
 			json_decode((string) file_get_contents($path)),
 		);
-
 		if ($composerJson === [] || $composerJson === '') {
 			throw new \RuntimeException(
 				'File "composer.json" can not be empty. Did you check path "' . $path . '"?',
@@ -57,7 +56,7 @@ final class Generator
 	{
 		try {
 			$packagesVersions = $this->getPackagesVersions();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 			$packagesVersions = [];
 		}
 		if (isset($composer['require']) === false) {
@@ -163,14 +162,15 @@ final class Generator
 		$packages = [];
 		if (class_exists(ClassLoader::class, false)) {
 			try {
-				if (($classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName()) === false) {
+				$classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName();
+				if ($classLoader === false) {
 					throw new \RuntimeException(
 						'Composer classLoader (class "' . ClassLoader::class . '") does not exist. '
 						. 'Please check your Composer installation.',
 					);
 				}
 				$lockFile = \dirname($classLoader) . '/../../composer.lock';
-			} catch (\ReflectionException $e) {
+			} catch (\ReflectionException) {
 				$lockFile = null;
 			}
 			if ($lockFile !== null && is_file($lockFile) === false) {
@@ -179,7 +179,7 @@ final class Generator
 
 			$composer = @json_decode((string) file_get_contents((string) $lockFile)); // @ may not exist or be valid
 			$packages = (array) @$composer->packages;
-			usort($packages, fn($a, $b) => strcmp($a->name, $b->name));
+			usort($packages, static fn($a, $b) => strcmp($a->name, $b->name));
 		}
 
 		foreach ($packages as $package) {

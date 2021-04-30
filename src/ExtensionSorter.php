@@ -18,7 +18,7 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string[]|\stdClass[]|mixed[] $extensions
+	 * @param array<string, string|\stdClass|mixed> $extensions
 	 */
 	public static function serializeExtensionList(array $extensions): string
 	{
@@ -31,7 +31,7 @@ final class ExtensionSorter
 			} elseif (\is_array($definition) && isset($definition['value'])) {
 				$type = (string) $definition['value'];
 			} else {
-				throw new \InvalidArgumentException('Definition type must be string, object or array, but "' . \gettype($definition) . '" given.');
+				throw new \InvalidArgumentException('Definition type must be string, object or array, but "' . get_debug_type($definition) . '" given.');
 			}
 			if (class_exists($type) === false) {
 				throw new \RuntimeException(
@@ -102,7 +102,7 @@ final class ExtensionSorter
 							$position = $returnPosition;
 							break;
 						}
-					} catch (\InvalidArgumentException $e) { // move candidate item to end of candidatest list
+					} catch (\InvalidArgumentException) { // move candidate item to end of candidatest list
 						if (isset($castlingTtl[$candidate['type']]) === false) {
 							$castlingTtl[$candidate['type']] = 0;
 						}
@@ -223,7 +223,7 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string|mixed[]|\stdClass[] $definition
+	 * @param string|array<string, \stdClass|mixed> $definition
 	 */
 	private static function encodeExtensionDefinition($definition): string
 	{

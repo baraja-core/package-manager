@@ -51,7 +51,8 @@ final class CiDetector
 	 */
 	public function detect(): CiInterface
 	{
-		if (($ciServer = $this->detectCurrentCiServer()) === null) {
+		$ciServer = $this->detectCurrentCiServer();
+		if ($ciServer === null) {
 			throw new PackageDescriptorException('No CI server detected in current environment');
 		}
 

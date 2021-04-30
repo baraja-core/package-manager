@@ -19,7 +19,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	 * This credentials will be automatically used for test connection.
 	 * If connection works it will be used for final Neon configuration.
 	 *
-	 * @var string[][][]
+	 * @var array<string, array<int, array<int, string>>>
 	 */
 	private static array $commonCredentials = [
 		'localhost' => [
@@ -44,13 +44,14 @@ final class ConfigLocalNeonTask extends BaseTask
 	 */
 	public function run(): bool
 	{
-		if (\is_file($path = \dirname(__DIR__, 6) . '/app/config/local.neon') === true) {
+		$path = \dirname(__DIR__, 6) . '/app/config/local.neon';
+		if (is_file($path) === true) {
 			echo 'local.neon exist.' . "\n";
 			echo 'Path: ' . $path;
 
 			return true;
 		}
-		if (\class_exists('\Baraja\Doctrine\EntityManager') === false) {
+		if (class_exists('\Baraja\Doctrine\EntityManager') === false) {
 			file_put_contents($path, '');
 
 			return true;
@@ -64,7 +65,8 @@ final class ConfigLocalNeonTask extends BaseTask
 
 				return true;
 			}
-		} catch (\Exception $e) {
+		} catch (\Exception) {
+			// Silence is golden.
 		}
 
 		echo 'local.neon does not exist.' . "\n";
@@ -104,7 +106,8 @@ final class ConfigLocalNeonTask extends BaseTask
 		$candidateDatabases = [];
 		echo "\n\n";
 
-		if (($showDatabasesSelection = $connection->query('SHOW DATABASES')) !== false) {
+		$showDatabasesSelection = $connection->query('SHOW DATABASES');
+		if ($showDatabasesSelection !== false) {
 			$databaseSelectionList = $showDatabasesSelection->fetchAll() ?: [];
 		} else {
 			$databaseSelectionList = [];
@@ -137,9 +140,10 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			if (strtolower($usedDatabase) === 'new') {
 				while (true) {
-					if (preg_match('/^[a-z0-9_\-]+$/', (string) $usedDatabase = $this->ask('How is the database name?'))) {
+					$usedDatabase = (string) $this->ask('How is the database name?');
+					if (preg_match('/^[a-z0-9_\-]+$/', $usedDatabase)) {
 						if (!\in_array($usedDatabase, $databaseList, true)) {
-							$this->createDatabase((string) $usedDatabase, $connection);
+							$this->createDatabase($usedDatabase, $connection);
 							break;
 						}
 
@@ -167,7 +171,8 @@ final class ConfigLocalNeonTask extends BaseTask
 					break;
 				}
 				echo 'Database "' . $usedDatabase . '" does not exist.' . "\n";
-				if ($this->ask('Create database "' . ($newDatabaseName = strtolower($usedDatabase)) . '"?', ['y', 'n']) === 'y') {
+				$newDatabaseName = strtolower($usedDatabase);
+				if ($this->ask('Create database "' . $newDatabaseName . '"?', ['y', 'n']) === 'y') {
 					$this->createDatabase($newDatabaseName, $connection);
 					break;
 				}
@@ -208,7 +213,8 @@ final class ConfigLocalNeonTask extends BaseTask
 					$connectionServer = $server;
 					[$connectionUser, $connectionPassword] = $credential;
 					break;
-				} catch (\PDOException $e) {
+				} catch (\PDOException) {
+					// Connection does not work.
 				}
 			}
 		}
@@ -229,21 +235,27 @@ final class ConfigLocalNeonTask extends BaseTask
 		}
 
 		for ($ttl = 10; $ttl > 0; $ttl--) {
-			if (($connectionServer = $this->ask('Server (hostname) [empty for "127.0.0.1"]:')) === null) {
+			$connectionServer = $this->ask('Server (hostname) [empty for "127.0.0.1"]:');
+			if ($connectionServer === null) {
 				echo 'Server "127.0.0.1" has been used.';
 				$connectionServer = '127.0.0.1';
 			}
-			if (($connectionUser = $this->ask('User [empty for "root"]:')) === null) {
+			$connectionUser = $this->ask('User [empty for "root"]:');
+			if ($connectionUser === null) {
 				echo 'User "root" has been used.';
 				$connectionUser = 'root';
 			}
-			while (($connectionPassword = trim($this->ask('Password [can not be empty!]:') ?? '')) === '') {
+			do {
+				$connectionPassword = trim($this->ask('Password [can not be empty!]:') ?? '');
+				if ($connectionPassword !== '') {
+					break;
+				}
 				Helpers::terminalRenderError('Password can not be empty!');
 				echo "\n\n\n" . 'Information to resolve this issue:' . "\n\n";
 				echo 'For the best protection of the web server and database,' . "\n";
 				echo 'it is important to always set a passphrase that must not be an empty string.' . "\n";
-				echo 'If you are using a database without a password, set the password first and then install again.';
-			}
+				echo 'I>f you are using a database without a password, set the password first and then install again.';
+			} while (true);
 			echo "\n\n";
 
 			try {

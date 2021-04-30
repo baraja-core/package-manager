@@ -45,11 +45,14 @@ final class Helpers
 	{
 		static $disabled;
 		if (\function_exists($functionName) === true) {
-			if ($disabled === null && \is_string($disableFunctions = ini_get('disable_functions'))) {
-				$disabled = explode(',', (string) $disableFunctions);
+			if ($disabled === null) {
+				$disableFunctions = ini_get('disable_functions');
+				if (is_string($disableFunctions)) {
+					$disabled = explode(',', $disableFunctions);
+				}
 			}
 
-			return \in_array($functionName, $disabled, true) === false;
+			return \in_array($functionName, $disabled ?? [], true) === false;
 		}
 
 		return false;
@@ -66,7 +69,7 @@ final class Helpers
 		if (\is_object($input)) {
 			try {
 				$reflection = new \ReflectionClass($input);
-			} catch (\ReflectionException $e) {
+			} catch (\ReflectionException) {
 				return null;
 			}
 

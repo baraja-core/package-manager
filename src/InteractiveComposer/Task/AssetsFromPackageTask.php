@@ -23,7 +23,6 @@ final class AssetsFromPackageTask extends BaseTask
 			return false;
 		}
 
-
 		echo ConsoleHelpers::terminalRenderLabel('Warning') . ': ';
 		echo 'This task is deprecated and will be removed in PackageManager v4.';
 		echo 'BasePath:    ' . ($basePath = \dirname(__DIR__, 5) . '/') . "\n";

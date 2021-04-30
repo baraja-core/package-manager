@@ -71,11 +71,12 @@ final class TaskManager
 					: 10;
 
 				$return[\get_class($task)] = new TaskItem($task, $priority);
-			} catch (\ReflectionException $e) {
+			} catch (\ReflectionException) {
+				// Silence is golden.
 			}
 		}
 
-		usort($return, fn(TaskItem $a, TaskItem $b): int => $a->getPriority() < $b->getPriority() ? 1 : -1);
+		usort($return, static fn(TaskItem $a, TaskItem $b): int => $a->getPriority() < $b->getPriority() ? 1 : -1);
 
 		return $return;
 	}
