@@ -13,7 +13,8 @@ final class InteractiveComposer
 {
 	public function run(TaskManager $taskManager): void
 	{
-		if (($identity = $taskManager->getCompanyIdentity()) !== null) {
+		$identity = $taskManager->getCompanyIdentity();
+		if ($identity !== null) {
 			echo $identity->getLogo() . "\n";
 		}
 

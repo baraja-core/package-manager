@@ -81,7 +81,7 @@ final class Storage
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
 					foreach ((array) ($value['data'] ?? []) as $extensionName => $extensionType) {
-						$extensions[$extensionName] = $extensionType;
+						$extensions[(string) $extensionName] = $extensionType;
 					}
 				} elseif ($param !== 'includes') {
 					$neon[$param][] = [

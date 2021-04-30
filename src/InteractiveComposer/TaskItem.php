@@ -9,7 +9,7 @@ final class TaskItem
 {
 	public function __construct(
 		private ITask $task,
-		private int $priority
+		private int $priority,
 	) {
 	}
 
@@ -28,6 +28,6 @@ final class TaskItem
 
 	public function getClassName(): string
 	{
-		return \get_class($this->task);
+		return $this->task::class;
 	}
 }
