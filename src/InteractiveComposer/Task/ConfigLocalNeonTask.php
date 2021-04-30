@@ -126,7 +126,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		while (true) {
 			if ($usedDatabase === null) {
 				$usedDatabase = (string) $this->ask('Which database use? Type number or specific name. Type "new" for create new.');
-				if (preg_match('/^\d+$/',$usedDatabase)) {
+				if (preg_match('/^\d+$/', $usedDatabase)) {
 					$usedDatabaseKey = (int) $usedDatabase;
 					if (isset($databaseList[$usedDatabaseKey])) {
 						$usedDatabase = $databaseList[$usedDatabaseKey];
