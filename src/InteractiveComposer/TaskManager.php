@@ -24,7 +24,6 @@ final class TaskManager
 			$taskManager->addTask(new ConfigLocalNeonTask($packageRegistrator));
 			$taskManager->addTask(new AssetsFromPackageTask($packageRegistrator));
 			$taskManager->addTask(new ClearCacheTask($packageRegistrator));
-			$taskManager->addTask(new ComposerJsonTask($packageRegistrator));
 		}
 
 		return $taskManager;
