@@ -85,10 +85,12 @@ final class ExtensionSorter
 		$registered = [];
 		$castlingTtl = [];
 		while ($candidates !== []) {
-			if (($candidateKey = array_keys($candidates)[0] ?? null) === null) {
+			$candidateKey = array_keys($candidates)[0] ?? null;
+			if ($candidateKey === null) {
 				break;
 			}
-			if (($candidate = $candidates[$candidateKey] ?? null) === null) {
+			$candidate = $candidates[$candidateKey] ?? null;
+			if ($candidate === null) {
 				throw new \RuntimeException('Candidate key "' . $candidateKey . '" is broken.');
 			}
 
