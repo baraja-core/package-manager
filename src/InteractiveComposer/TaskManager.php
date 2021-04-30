@@ -22,7 +22,6 @@ final class TaskManager
 			$packageRegistrator = PackageRegistrator::get();
 			$taskManager = new self;
 			$taskManager->addTask(new ConfigLocalNeonTask($packageRegistrator));
-			$taskManager->addTask(new AssetsFromPackageTask($packageRegistrator));
 			$taskManager->addTask(new ClearCacheTask($packageRegistrator));
 		}
 
