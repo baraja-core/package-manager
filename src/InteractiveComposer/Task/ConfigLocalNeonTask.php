@@ -313,17 +313,14 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Default configuration for CI and test environment.
 	 *
-	 * @return mixed[]
+	 * @return array<string, array<string, array<string, string>>>
 	 */
 	private function getDefaultTestConfiguration(): array
 	{
 		return [
 			'baraja.database' => [
 				'connection' => [
-					'host' => 'localhost',
-					'dbname' => 'test',
-					'user' => 'root',
-					'password' => 'root',
+					'url' => 'sqlite:///:memory:',
 				],
 			],
 		];
