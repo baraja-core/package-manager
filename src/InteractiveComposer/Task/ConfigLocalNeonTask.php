@@ -317,6 +317,17 @@ final class ConfigLocalNeonTask extends BaseTask
 	 */
 	private function getDefaultTestConfiguration(): array
 	{
+		if (
+			!function_exists('sqlite_open')
+			&& !class_exists('SQLite3')
+			&& !extension_loaded('sqlite3')
+		) {
+			trigger_error(
+				'Extension Sqlite3 may not be available for test cases. '
+				. 'Please check your environment configuration.',
+			);
+		}
+
 		return [
 			'baraja.database' => [
 				'connection' => [
