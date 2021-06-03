@@ -51,7 +51,7 @@ final class ConfigLocalNeonTask extends BaseTask
 
 			return true;
 		}
-		if (class_exists('\Baraja\Doctrine\EntityManager') === false) {
+		if (interface_exists('Doctrine\ORM\EntityManagerInterface') === false) {
 			file_put_contents($path, '');
 
 			return true;
