@@ -28,7 +28,7 @@ final class Storage
 		private string $configLocalPath,
 		string $projectRoot
 	) {
-		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string)time());
+		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string) time());
 		$this->generator = new Generator($projectRoot);
 	}
 
@@ -85,7 +85,7 @@ final class Storage
 		foreach ($descriptor->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
-					foreach ((array)($value['data'] ?? []) as $extensionName => $extensionType) {
+					foreach ((array) ($value['data'] ?? []) as $extensionName => $extensionType) {
 						$extensions[(string) $extensionName] = $extensionType;
 					}
 				} elseif ($param !== 'includes') {
@@ -147,7 +147,7 @@ final class Storage
 							$score = 2;
 						}
 						if ($item instanceof Entity) {
-							$array = (array)$item->value;
+							$array = (array) $item->value;
 							$score += 3;
 						}
 						if (isset($array['factory']) === true) {
