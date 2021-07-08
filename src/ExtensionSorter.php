@@ -66,12 +66,20 @@ final class ExtensionSorter
 		if (\class_exists($class) === false) {
 			throw new \RuntimeException('Extension class "' . $class . '" does not exist.');
 		}
-		if (\method_exists($class, $method) === false) {
-			return null;
+		$return = [];
+		$ref = new \ReflectionClass($class);
+		foreach ($ref->getAttributes(ExtensionsMeta::class) as $attribute) {
+			$return[] = $attribute->getArguments()[$method] ?? [];
+		}
+		if (\method_exists($class, $method) === false) { // back compatibility
+			/** @phpstan-ignore-next-line */
+			$methodReturn = ((array) call_user_func($class . '::' . $method)) ?: null;
+			if ($methodReturn !== null) {
+				$return[] = $methodReturn;
+			}
 		}
 
-		/** @phpstan-ignore-next-line */
-		return ((array) call_user_func($class . '::' . $method)) ?: null;
+		return array_merge([], ...$return) ?: null;
 	}
 
 
