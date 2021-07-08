@@ -79,6 +79,7 @@ final class ExtensionSorter
 			}
 		}
 
+		/** @phpstan-ignore-next-line */
 		return array_merge([], ...$return) ?: null;
 	}
 
