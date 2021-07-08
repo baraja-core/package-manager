@@ -28,7 +28,7 @@ final class Storage
 		private string $configLocalPath,
 		string $projectRoot
 	) {
-		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string) time());
+		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string)time());
 		$this->generator = new Generator($projectRoot);
 	}
 
@@ -45,11 +45,15 @@ final class Storage
 			$class = '\PackageDescriptorEntity';
 			try {
 				if (\class_exists($class) === false) {
-					throw new \RuntimeException('Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.');
+					throw new \RuntimeException(
+						'Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.',
+					);
 				}
 				$ref = new \ReflectionClass($class);
-			} catch (\ReflectionException $e) {
-				throw new \LogicException('Package description entity does not exist, because class "' . $class . '" does not exist.');
+			} catch (\ReflectionException) {
+				throw new \LogicException(
+					'Package description entity does not exist, because class "' . $class . '" does not exist.',
+				);
 			}
 
 			/** @var PackageDescriptorEntityInterface $service */
@@ -81,7 +85,7 @@ final class Storage
 		foreach ($descriptor->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
-					foreach ((array) ($value['data'] ?? []) as $extensionName => $extensionType) {
+					foreach ((array)($value['data'] ?? []) as $extensionName => $extensionType) {
 						$extensions[(string) $extensionName] = $extensionType;
 					}
 				} elseif ($param !== 'includes') {
@@ -129,36 +133,39 @@ final class Storage
 
 			ksort($treeOthers);
 
-			usort($treeNumbers, function ($left, $right): int {
-				$score = static function ($item): int {
-					if (\is_string($item)) {
-						return 1;
+			usort(
+				$treeNumbers,
+				function ($left, $right): int {
+					$score = static function ($item): int {
+						if (\is_string($item)) {
+							return 1;
+						}
+
+						$array = [];
+						$score = 0;
+						if (\is_iterable($item)) {
+							$score = 2;
+						}
+						if ($item instanceof Entity) {
+							$array = (array)$item->value;
+							$score += 3;
+						}
+						if (isset($array['factory']) === true) {
+							return $score + 1;
+						}
+
+						return $score;
+					};
+
+					$a = $score($left);
+					$b = $score($right);
+					if ($a > $b) {
+						return -1;
 					}
 
-					$array = [];
-					$score = 0;
-					if (\is_iterable($item)) {
-						$score = 2;
-					}
-					if ($item instanceof Entity) {
-						$array = (array) $item->value;
-						$score += 3;
-					}
-					if (isset($array['factory']) === true) {
-						return $score + 1;
-					}
-
-					return $score;
-				};
-
-				$a = $score($left);
-				$b = $score($right);
-				if ($a > $b) {
-					return -1;
+					return $a === $b ? 0 : 1;
 				}
-
-				return $a === $b ? 0 : 1;
-			});
+			);
 
 			if ($treeOthers !== []) {
 				$return .= str_replace("\n", "\n\t", Neon::encode($treeOthers, Neon::BLOCK));
@@ -172,7 +179,10 @@ final class Storage
 			$return .= "\n" . ExtensionSorter::serializeExtensionList($extensions);
 		}
 
-		FileSystem::write($this->configPackagePath, trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n");
+		FileSystem::write(
+			$this->configPackagePath,
+			trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n"
+		);
 	}
 
 
@@ -195,11 +205,13 @@ final class Storage
 
 		$class->addMethod('getGeneratedDateTimestamp')
 			->setReturnType('int')
-			->setBody('static $cache;'
+			->setBody(
+				'static $cache;'
 				. "\n\n" . 'if ($cache === null) {'
 				. "\n\t" . '$cache = (int) strtotime($this->getGeneratedDateTime());'
 				. "\n" . '}'
-				. "\n\n" . 'return $cache;');
+				. "\n\n" . 'return $cache;'
+			);
 
 		$class->addMethod('getComposerHash')
 			->setReturnType('string')
@@ -217,13 +229,17 @@ final class Storage
 					ltrim($property->getName(), '_'),
 					$this->makeScalarValueOnly($property->getValue($packageDescriptorEntity)),
 				)->setProtected()
-					->setType((static function (?\ReflectionType $type) {
-						if ($type instanceof \ReflectionNamedType) {
-							return $type->getName();
-						}
+					->setType(
+						(static function (?\ReflectionType $type) {
+							if ($type instanceof \ReflectionNamedType) {
+								return $type->getName();
+							}
 
-						return null;
-					})($property->getType()));
+							return null;
+						})(
+							$property->getType()
+						)
+					);
 			}
 		}
 
