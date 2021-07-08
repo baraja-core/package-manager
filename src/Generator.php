@@ -41,7 +41,7 @@ final class Generator
 		}
 
 		$packageDescriptor->setComposer($composerJson);
-		$packageDescriptor->setPackages($packages = $this->getPackages($composerJson));
+		$packageDescriptor->setPackages($this->getPackages($composerJson));
 
 		return $packageDescriptor;
 	}

@@ -81,7 +81,10 @@ final class Helpers
 					$return[$property->getName()] = self::haystackToArray($property->getValue($input));
 				}
 				foreach ($reflection->getMethods() as $method) {
-					if ($method->name !== 'getReflection' && preg_match('/^(get|is)(.+)$/', $method->name, $_method)) {
+					if (
+						$method->name !== 'getReflection'
+						&& preg_match('/^(get|is)(.+)$/', $method->name, $_method)
+					) {
 						$return[lcfirst($_method[2])] = self::haystackToArray($input->{$method->name}());
 					}
 				}
@@ -151,7 +154,9 @@ final class Helpers
 			$staticTtl++;
 
 			if ($staticTtl > 16) {
-				throw new \RuntimeException('The maximum invalid response limit was exceeded. Current limit: ' . $staticTtl);
+				throw new \RuntimeException(
+					'The maximum invalid response limit was exceeded. Current limit: ' . $staticTtl,
+				);
 			}
 
 			return self::terminalInteractiveAsk($question, $possibilities);
