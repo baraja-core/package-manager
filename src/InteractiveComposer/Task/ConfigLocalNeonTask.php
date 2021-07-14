@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Baraja\PackageManager\Composer;
 
 
+use Baraja\Console\Helpers as ConsoleHelpers;
 use Baraja\PackageManager\Helpers;
 use Baraja\PackageManager\PackageRegistrator;
 use Nette\Neon\Neon;
@@ -58,6 +59,14 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			echo 'Configuration is empty.' . "\n";
 		}
+		if ($_ENV !== []) {
+			echo 'Auto detected environment settings: ' . "\n";
+			foreach ($_ENV as $key => $value) {
+				echo '    ' . ConsoleHelpers::terminalRenderLabel((string) $key) . ': ';
+				echo (is_scalar($value) ? $value : json_encode($value, JSON_PRETTY_PRINT)) . "\n";
+			}
+			echo "\n\n";
+		}
 		$connectionString = $_ENV['DB_URI'] ?? null;
 		if ($connectionString !== null) {
 			echo 'Use connection string.';
@@ -86,6 +95,7 @@ final class ConfigLocalNeonTask extends BaseTask
 			// Silence is golden.
 		}
 
+		echo "\n-----\n";
 		echo 'local.neon does not exist.' . "\n";
 		echo 'Path: ' . $path;
 
