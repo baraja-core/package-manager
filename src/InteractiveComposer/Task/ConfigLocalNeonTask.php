@@ -63,7 +63,12 @@ final class ConfigLocalNeonTask extends BaseTask
 			echo 'Auto detected environment settings: ' . "\n";
 			foreach ($_ENV as $key => $value) {
 				echo '    ' . ConsoleHelpers::terminalRenderLabel((string) $key) . ': ';
-				echo (is_scalar($value) ? $value : json_encode($value, JSON_PRETTY_PRINT)) . "\n";
+				if (is_scalar($value)) {
+					echo $value;
+				} else {
+					echo json_encode($value, JSON_PRETTY_PRINT);
+				}
+				echo "\n";
 			}
 			echo "\n\n";
 		}
