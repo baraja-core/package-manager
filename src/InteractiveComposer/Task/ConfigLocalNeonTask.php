@@ -58,7 +58,16 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			echo 'Configuration is empty.' . "\n";
 		}
-		if ($doctrineExist === false || is_string($_ENV['DB_URI'] ?? null)) {
+		$connectionString = $_ENV['DB_URI'] ?? null;
+		if ($connectionString !== null) {
+			echo 'Use connection string.';
+			file_put_contents($path, '');
+
+			return true;
+		}
+		echo 'Environment variable "DB_URI" does not exist.' . "\n";
+		if ($doctrineExist === false) {
+			echo 'Doctrine not found: Using empty configuration file.';
 			file_put_contents($path, '');
 
 			return true;
@@ -72,6 +81,7 @@ final class ConfigLocalNeonTask extends BaseTask
 
 				return true;
 			}
+			echo 'CI environment has not detected.' . "\n";
 		} catch (\Exception) {
 			// Silence is golden.
 		}
