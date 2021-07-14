@@ -14,7 +14,6 @@ use Nette\Neon\Neon;
  */
 final class ConfigLocalNeonTask extends BaseTask
 {
-
 	/**
 	 * This credentials will be automatically used for test connection.
 	 * If connection works it will be used for final Neon configuration.
@@ -98,7 +97,7 @@ final class ConfigLocalNeonTask extends BaseTask
 
 
 	/**
-	 * @return mixed[]
+	 * @return array{baraja.database: array{connection: array{host: string, dbname: string, user: string, password: string}}
 	 */
 	private function generateMySqlConfig(): array
 	{
@@ -207,7 +206,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Get mysql connection credentials and return fully works credentials or in case of error empty array.
 	 *
-	 * @return string[]
+	 * @return array{server: string, user: string, password: string}
 	 */
 	private function mySqlConnect(): array
 	{
@@ -284,7 +283,7 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 		}
 
-		return [];
+		throw new \LogicException('MySql connection credentials can not be resolved.');
 	}
 
 
@@ -330,7 +329,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Default configuration for CI and test environment.
 	 *
-	 * @return array<string, array<string, array<string, string>>>
+	 * @return array{baraja.database: array{connection: array{url: string}}}
 	 */
 	private function getDefaultTestConfiguration(): array
 	{
