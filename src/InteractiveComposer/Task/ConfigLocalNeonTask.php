@@ -64,6 +64,16 @@ final class ConfigLocalNeonTask extends BaseTask
 			return true;
 		}
 
+		try { // Try use environment variable
+			file_put_contents($path, Neon::encode(
+				$this->generateByEnvironment(),
+				Neon::BLOCK,
+			));
+
+			return true;
+		} catch (\Throwable) {
+			// Silence is golden.
+		}
 		try {
 			if (PackageRegistrator::getCiDetect() !== null) {
 				echo 'CI environment detected: Use default configuration.' . "\n";
@@ -93,6 +103,28 @@ final class ConfigLocalNeonTask extends BaseTask
 	public function getName(): string
 	{
 		return 'Local.neon checker';
+	}
+
+
+	/**
+	 * Default configuration for CI, Docker, Kubernetes by environment variable.
+	 *
+	 * @return array{'baraja.database': array{connection: array{url: string}}}
+	 */
+	private function generateByEnvironment(): array
+	{
+		$connectionString = $_ENV['DB_URI'] ?? null;
+		if (is_string($connectionString) === false || $connectionString === '') {
+			throw new \RuntimeException('Connection string (key "DB_URI") is not valid string.');
+		}
+
+		return [
+			'baraja.database' => [
+				'connection' => [
+					'url' => $connectionString,
+				],
+			],
+		];
 	}
 
 
