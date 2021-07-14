@@ -45,13 +45,21 @@ final class ConfigLocalNeonTask extends BaseTask
 	public function run(): bool
 	{
 		$path = \dirname(__DIR__, 6) . '/app/config/local.neon';
+		try {
+			$doctrineExist = interface_exists('Doctrine\ORM\EntityManagerInterface');
+		} catch (\Throwable) {
+			$doctrineExist = false;
+		}
 		if (is_file($path) === true) {
 			echo 'local.neon exist.' . "\n";
-			echo 'Path: ' . $path;
-
-			return true;
+			echo 'Path: ' . $path . "\n";
+			$localNeonContent = trim((string) file_get_contents($path));
+			if ($localNeonContent !== '' || $doctrineExist === false) {
+				return true;
+			}
+			echo 'Configuration is empty.' . "\n";
 		}
-		if (interface_exists('Doctrine\ORM\EntityManagerInterface') === false) {
+		if ($doctrineExist === false) {
 			file_put_contents($path, '');
 
 			return true;
