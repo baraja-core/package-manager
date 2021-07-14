@@ -71,7 +71,7 @@ final class ExtensionSorter
 		foreach ($ref->getAttributes(ExtensionsMeta::class) as $attribute) {
 			$return[] = $attribute->getArguments()[$method] ?? [];
 		}
-		if (\method_exists($class, $method) === false) { // back compatibility
+		if (\method_exists($class, $method) === true) { // back compatibility
 			/** @phpstan-ignore-next-line */
 			$methodReturn = ((array) call_user_func($class . '::' . $method)) ?: null;
 			if ($methodReturn !== null) {
