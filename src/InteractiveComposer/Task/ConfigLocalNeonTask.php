@@ -58,7 +58,7 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			echo 'Configuration is empty.' . "\n";
 		}
-		if ($doctrineExist === false) {
+		if ($doctrineExist === false || is_string($_ENV['DB_URI'] ?? null)) {
 			file_put_contents($path, '');
 
 			return true;
