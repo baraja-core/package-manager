@@ -103,7 +103,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	private function generateMySqlConfig(): array
 	{
 		$mySqlCredentials = $this->mySqlConnect();
-		$createConnection = function() use ($mySqlCredentials): \PDO {
+		$createConnection = function () use ($mySqlCredentials): \PDO {
 			return new \PDO(
 				'mysql:host=' . $mySqlCredentials['server'],
 				$mySqlCredentials['user'],
