@@ -45,6 +45,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	public function run(): bool
 	{
 		$path = \dirname(__DIR__, 6) . '/app/config/local.neon';
+		$environment = getenv();
 		try {
 			$doctrineExist = interface_exists('Doctrine\ORM\EntityManagerInterface');
 		} catch (\Throwable) {
@@ -59,9 +60,9 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			echo 'Configuration is empty.' . "\n";
 		}
-		if ($_ENV !== []) {
+		if (is_array($environment) && $environment !== []) {
 			echo 'Auto detected environment settings: ' . "\n";
-			foreach ($_ENV as $key => $value) {
+			foreach ($environment as $key => $value) {
 				echo '    ' . ConsoleHelpers::terminalRenderLabel((string) $key) . ': ';
 				if (is_scalar($value)) {
 					echo $value;
@@ -72,7 +73,7 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 			echo "\n\n";
 		}
-		$connectionString = $_ENV['DB_URI'] ?? null;
+		$connectionString = $environment['DB_URI'] ?? null;
 		if ($connectionString !== null) {
 			echo 'Use connection string.';
 			file_put_contents($path, '');
