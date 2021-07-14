@@ -102,11 +102,14 @@ final class ConfigLocalNeonTask extends BaseTask
 	 */
 	private function generateMySqlConfig(): array
 	{
-		$connection = new \PDO(
-			'mysql:host=' . ($mySqlCredentials = $this->mySqlConnect())['server'],
-			$mySqlCredentials['user'],
-			$mySqlCredentials['password'],
-		);
+		$mySqlCredentials = $this->mySqlConnect();
+		$createConnection = function() use ($mySqlCredentials): \PDO {
+			return new \PDO(
+				'mysql:host=' . $mySqlCredentials['server'],
+				$mySqlCredentials['user'],
+				$mySqlCredentials['password'],
+			);
+		};
 
 		$databaseList = [];
 		$databaseCounter = 1;
@@ -114,7 +117,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		$candidateDatabases = [];
 		echo "\n\n";
 
-		$showDatabasesSelection = $connection->query('SHOW DATABASES');
+		$showDatabasesSelection = $createConnection()->query('SHOW DATABASES');
 		if ($showDatabasesSelection !== false) {
 			$databaseSelectionList = $showDatabasesSelection->fetchAll() ?: [];
 		} else {
@@ -152,7 +155,7 @@ final class ConfigLocalNeonTask extends BaseTask
 					$usedDatabase = (string) $this->ask('How is the database name?');
 					if (preg_match('/^[a-z0-9_\-]+$/', $usedDatabase)) {
 						if (!\in_array($usedDatabase, $databaseList, true)) {
-							$this->createDatabase($usedDatabase, $connection);
+							$this->createDatabase($usedDatabase, $createConnection);
 							break;
 						}
 
@@ -182,7 +185,7 @@ final class ConfigLocalNeonTask extends BaseTask
 				echo 'Database "' . $usedDatabase . '" does not exist.' . "\n";
 				$newDatabaseName = strtolower($usedDatabase);
 				if ($this->ask('Create database "' . $newDatabaseName . '"?', ['y', 'n']) === 'y') {
-					$this->createDatabase($newDatabaseName, $connection);
+					$this->createDatabase($newDatabaseName, $createConnection);
 					break;
 				}
 			}
@@ -287,7 +290,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	}
 
 
-	private function createDatabase(string $name, \PDO $connection): void
+	private function createDatabase(string $name, callable $createConnection): void
 	{
 		$sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '`; ' . "\n"
 			. 'DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci';
@@ -295,6 +298,8 @@ final class ConfigLocalNeonTask extends BaseTask
 		echo 'Creating database...' . "\n";
 		echo 'Command: ' . $sql . "\n\n";
 
+		/** @var \PDO $connection */
+		$connection = $createConnection();
 		if ($connection->exec($sql) !== 1) {
 			Helpers::terminalRenderError('Can not create database!');
 			echo "\n\n";
@@ -307,9 +312,15 @@ final class ConfigLocalNeonTask extends BaseTask
 		echo 'Database was successfully created.' . "\n\n";
 		echo 'Testing database...' . "\n";
 		echo 'Command: ' . $checkSql . "\n\n";
+		echo 'Creating database...' . "\n";
 
+		/** @var \PDO $connection */
+		$connection = $createConnection();
 		if ($connection->exec($checkSql) === 1) {
-			echo 'Database is OK.';
+			echo 'Database has been created.' . "\n";
+			echo 'Checking...' . "\n";
+			sleep(1);
+			echo 'Done.' . "\n\n";
 		} else {
 			Helpers::terminalRenderError('Can not create database. Please create manually and return here.');
 			echo "\n\n";
