@@ -97,7 +97,7 @@ final class ConfigLocalNeonTask extends BaseTask
 
 
 	/**
-	 * @return array{baraja.database: array{connection: array{host: string, dbname: string, user: string, password: string}}
+	 * @return array{'baraja.database': array{connection: array{host: string, dbname: string, user: string, password: string}}
 	 */
 	private function generateMySqlConfig(): array
 	{
@@ -329,7 +329,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Default configuration for CI and test environment.
 	 *
-	 * @return array{baraja.database: array{connection: array{url: string}}}
+	 * @return array{'baraja.database': array{connection: array{url: string}}}
 	 */
 	private function getDefaultTestConfiguration(): array
 	{
