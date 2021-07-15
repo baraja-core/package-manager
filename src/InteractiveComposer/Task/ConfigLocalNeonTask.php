@@ -71,25 +71,19 @@ final class ConfigLocalNeonTask extends BaseTask
 		$connectionString = $environment['DB_URI'] ?? null;
 		if ($connectionString !== null) {
 			echo 'Use connection string.';
-			file_put_contents($path, '');
-
-			return true;
+			return $this->writeConfiguration($path, '');
 		}
 		echo 'Environment variable "DB_URI" does not exist.' . "\n";
 		if ($doctrineExist === false) {
 			echo 'Doctrine not found: Using empty configuration file.';
-			file_put_contents($path, '');
-
-			return true;
+			return $this->writeConfiguration($path, []);
 		}
 
 		try {
 			if (PackageRegistrator::getCiDetect() !== null) {
 				echo 'CI environment detected: Use default configuration.' . "\n";
 				echo 'Path: ' . $path;
-				file_put_contents($path, Neon::encode($this->getDefaultTestConfiguration(), Neon::BLOCK));
-
-				return true;
+				return $this->writeConfiguration($path, $this->setupSqliteDatabaseConnection());
 			}
 			echo 'CI environment has not detected.' . "\n";
 		} catch (\Exception) {
@@ -100,11 +94,16 @@ final class ConfigLocalNeonTask extends BaseTask
 		echo 'local.neon does not exist.' . "\n";
 		echo 'Path: ' . $path;
 
-		if ($this->ask('Create?', ['y', 'n']) === 'y') {
-			file_put_contents($path, Neon::encode(
-				$this->generateMySqlConfig(),
-				Neon::BLOCK,
-			));
+		try {
+			if ($this->ask('Start database connection setup?', ['y', 'n']) === 'y') {
+				$this->writeConfiguration($path, $this->setupDatabaseConnection());
+			} else {
+				throw new \RuntimeException('Please generate database configuration.');
+			}
+		} catch (\Throwable $e) {
+			ConsoleHelpers::terminalRenderError($e->getMessage());
+			echo 'Use default Sqlite connection...' . "\n";
+			$this->writeConfiguration($path, $this->setupSqliteDatabaseConnection());
 		}
 
 		return true;
@@ -117,10 +116,27 @@ final class ConfigLocalNeonTask extends BaseTask
 	}
 
 
+	private function writeConfiguration(string $path, mixed $haystack): bool
+	{
+		if (is_array($haystack)) {
+			$haystack = trim(Neon::encode(
+				[
+					'baraja.database' => [
+						'connection' => $haystack,
+					],
+				],
+				Neon::BLOCK
+			)) . "\n";
+		}
+
+		return file_put_contents($path, $haystack) !== false;
+	}
+
+
 	/**
-	 * @return array{'baraja.database': array{connection: array{host: string, dbname: string, user: string, password: string}}}
+	 * @return array{host: string, dbname: string, user: string, password: string}
 	 */
-	private function generateMySqlConfig(): array
+	private function setupDatabaseConnection(): array
 	{
 		$mySqlCredentials = $this->mySqlConnect();
 		$createConnection = fn(): \PDO => new \PDO(
@@ -212,14 +228,10 @@ final class ConfigLocalNeonTask extends BaseTask
 		}
 
 		return [
-			'baraja.database' => [
-				'connection' => [
-					'host' => $mySqlCredentials['server'],
-					'dbname' => $usedDatabase,
-					'user' => $mySqlCredentials['user'],
-					'password' => $mySqlCredentials['password'],
-				],
-			],
+			'host' => $mySqlCredentials['server'],
+			'dbname' => $usedDatabase,
+			'user' => $mySqlCredentials['user'],
+			'password' => $mySqlCredentials['password'],
 		];
 	}
 
@@ -350,9 +362,9 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Default configuration for CI and test environment.
 	 *
-	 * @return array{'baraja.database': array{connection: array{url: string}}}
+	 * @return array{url: string}
 	 */
-	private function getDefaultTestConfiguration(): array
+	private function setupSqliteDatabaseConnection(): array
 	{
 		if (
 			!function_exists('sqlite_open')
@@ -366,11 +378,7 @@ final class ConfigLocalNeonTask extends BaseTask
 		}
 
 		return [
-			'baraja.database' => [
-				'connection' => [
-					'url' => 'sqlite:///:memory:',
-				],
-			],
+			'url' => 'sqlite:///:memory:',
 		];
 	}
 }
