@@ -296,7 +296,7 @@ final class ConfigLocalNeonTask extends BaseTask
 				echo "\n\n\n" . 'Information to resolve this issue:' . "\n\n";
 				echo 'For the best protection of the web server and database,' . "\n";
 				echo 'it is important to always set a passphrase that must not be an empty string.' . "\n";
-				echo 'I>f you are using a database without a password, set the password first and then install again.';
+				echo 'If you are using a database without a password, set the password first and then install again.';
 			} while (true);
 			echo "\n\n";
 
