@@ -118,7 +118,7 @@ final class ConfigLocalNeonTask extends BaseTask
 
 	private function writeConfiguration(string $path, mixed $haystack): bool
 	{
-		if (is_array($haystack)) {
+		if (is_array($haystack) && $haystack !== []) {
 			$haystack = trim(Neon::encode(
 				[
 					'baraja.database' => [
