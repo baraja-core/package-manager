@@ -1,4 +1,0 @@
-rules:
-    - Symplify\CodingStandard\ObjectCalisthenics\Rules\NoChainMethodCallRule
-    - Symplify\CodingStandard\ObjectCalisthenics\Rules\NoElseAndElseIfRule
-    - Symplify\CodingStandard\ObjectCalisthenics\Rules\NoShortNameRule

@@ -1,8 +1,0 @@
-services:
-    errorFormatter.symplify:
-        class: 'Symplify\PHPStanExtensions\ErrorFormatter\SymplifyErrorFormatter'
-
-    - Symfony\Component\Console\Terminal
-    - Symplify\PackageBuilder\Console\Style\SymfonyStyleFactory
-    -
-        factory: ['@Symplify\PackageBuilder\Console\Style\SymfonyStyleFactory', 'create']
