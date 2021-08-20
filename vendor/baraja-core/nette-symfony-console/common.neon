@@ -1,0 +1,2 @@
+extensions:
+	console: Baraja\Console\ConsoleExtension
