@@ -42,7 +42,7 @@
 	"minimum-stability": "stable",
 	"config": {
 		"platform": {
-			"php": "7.4.9"
+			"php": "8.0"
 		}
 	}
 }
