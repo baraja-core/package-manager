@@ -5,18 +5,8 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Nette\SmartObject;
-
 final class Package
 {
-	use SmartObject;
-
-	private string $name;
-
-	private ?string $version;
-
-	private string $dependency;
-
 	/** @var string[][]|mixed[][][] */
 	private array $config;
 
@@ -28,11 +18,13 @@ final class Package
 	 * @param string[][]|mixed[][][] $config
 	 * @param mixed[] $composer
 	 */
-	public function __construct(string $name, ?string $version, string $dependency, array $config, array $composer)
-	{
-		$this->name = $name;
-		$this->version = $version;
-		$this->dependency = $dependency;
+	public function __construct(
+		private string $name,
+		private ?string $version,
+		private string $dependency,
+		array $config,
+		array $composer
+	) {
 		$this->config = $config;
 		$this->composer = $composer;
 	}

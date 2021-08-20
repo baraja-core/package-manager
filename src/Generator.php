@@ -12,12 +12,9 @@ use Nette\Neon\Neon;
 
 final class Generator
 {
-	private string $projectRoot;
-
-
-	public function __construct(string $projectRoot)
-	{
-		$this->projectRoot = $projectRoot;
+	public function __construct(
+		private string $projectRoot,
+	) {
 	}
 
 
@@ -29,12 +26,22 @@ final class Generator
 	{
 		$packageDescriptor = new PackageDescriptorEntity;
 
+		$path = $this->projectRoot . '/composer.json';
+		if (is_file($path) === false) {
+			throw new \RuntimeException('File "composer.json" on path "' . $path . '" does not exist.');
+		}
+
 		$composerJson = Helpers::haystackToArray(
-			json_decode((string) file_get_contents($this->projectRoot . '/composer.json'))
+			json_decode((string) file_get_contents($path)),
 		);
+		if ($composerJson === [] || $composerJson === '') {
+			throw new \RuntimeException(
+				'File "composer.json" can not be empty. Did you check path "' . $path . '"?',
+			);
+		}
 
 		$packageDescriptor->setComposer($composerJson);
-		$packageDescriptor->setPackages($packages = $this->getPackages($composerJson));
+		$packageDescriptor->setPackages($this->getPackages($composerJson));
 
 		return $packageDescriptor;
 	}
@@ -49,7 +56,7 @@ final class Generator
 	{
 		try {
 			$packagesVersions = $this->getPackagesVersions();
-		} catch (\Throwable $e) {
+		} catch (\Throwable) {
 			$packagesVersions = [];
 		}
 		if (isset($composer['require']) === false) {
@@ -60,10 +67,16 @@ final class Generator
 
 		// Find other packages
 		foreach (new \DirectoryIterator($this->projectRoot . '/vendor') as $vendorNamespace) {
-			if ($vendorNamespace->isDir() === true && ($namespace = $vendorNamespace->getFilename()) !== '.' && $namespace !== '..') {
+			$namespace = $vendorNamespace->getFilename();
+			if ($namespace !== '.' && $namespace !== '..' && $vendorNamespace->isDir() === true) {
 				foreach (new \DirectoryIterator($this->projectRoot . '/vendor/' . $namespace) as $packageName) {
-					if ($packageName->isDir() === true && ($name = $packageName->getFilename()) !== '.' && $name !== '..'
-						&& isset($packageDirs[$package = $namespace . '/' . $name]) === false
+					$name = $packageName->getFilename();
+					$package = $namespace . '/' . $name;
+					if (
+						$name !== '.'
+						&& $name !== '..'
+						&& isset($packageDirs[$package]) === false
+						&& $packageName->isDir() === true
 					) {
 						$packageDirs[$package] = '*';
 					}
@@ -74,9 +87,11 @@ final class Generator
 		$return = [];
 		foreach ($packageDirs as $name => $dependency) {
 			if (!preg_match('/^(php|ext-\w+|[a-z0-9-_]+\/[a-z0-9-_]+)$/', $name)) {
-				throw new \RuntimeException('Composer 2.0 compatibility: Package name "' . $name . '" is invalid, it must contain only lower english characters.');
+				trigger_error('Composer 2.0 compatibility: Package name "' . $name . '" is invalid, it must contain only lower english characters.');
 			}
-			if (is_dir($path = $this->projectRoot . '/vendor/' . ($name = mb_strtolower($name, 'UTF-8'))) === false) {
+			$name = mb_strtolower($name, 'UTF-8');
+			$path = $this->projectRoot . '/vendor/' . $name;
+			if (is_dir($path) === false) {
 				continue;
 			}
 
@@ -91,7 +106,8 @@ final class Generator
 				trigger_error('File "config.neon" is deprecated for Nette 3.0, please use "common.neon" for path: "' . $path . '".');
 				$configPath = $path . '/config.neon';
 			}
-			if (is_file($composerPath = $path . '/composer.json') && json_decode((string) file_get_contents($composerPath)) === null) {
+			$composerPath = $path . '/composer.json';
+			if (is_file($composerPath) && json_decode((string) file_get_contents($composerPath)) === null) {
 				PackageDescriptorCompileException::composerJsonIsBroken($name);
 			}
 
@@ -148,14 +164,15 @@ final class Generator
 		$packages = [];
 		if (class_exists(ClassLoader::class, false)) {
 			try {
-				if (($classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName()) === false) {
+				$classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName();
+				if ($classLoader === false) {
 					throw new \RuntimeException(
 						'Composer classLoader (class "' . ClassLoader::class . '") does not exist. '
-						. 'Please check your Composer installation.'
+						. 'Please check your Composer installation.',
 					);
 				}
 				$lockFile = \dirname($classLoader) . '/../../composer.lock';
-			} catch (\ReflectionException $e) {
+			} catch (\ReflectionException) {
 				$lockFile = null;
 			}
 			if ($lockFile !== null && is_file($lockFile) === false) {
@@ -164,12 +181,12 @@ final class Generator
 
 			$composer = @json_decode((string) file_get_contents((string) $lockFile)); // @ may not exist or be valid
 			$packages = (array) @$composer->packages;
-			usort($packages, fn ($a, $b) => strcmp($a->name, $b->name));
+			usort($packages, static fn($a, $b) => strcmp($a->name, $b->name));
 		}
 
 		foreach ($packages as $package) {
 			$return[$package->name] = $package->version
-				. (strpos($package->version, 'dev') === false ? '' : ' #' . substr($package->source->reference, 0, 4));
+				. (!str_contains($package->version, 'dev') ? '' : ' #' . substr($package->source->reference, 0, 4));
 		}
 
 		return $return;

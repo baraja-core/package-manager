@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class Codeship extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('CI_NAME') === 'codeship';
+		return $environment->get('CI_NAME') === 'codeship';
 	}
 
 

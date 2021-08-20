@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class Drone extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('CI') === 'drone';
+		return $environment->get('CI') === 'drone';
 	}
 
 

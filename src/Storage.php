@@ -15,12 +15,6 @@ use Nette\Utils\Finder;
 
 final class Storage
 {
-	private string $basePath;
-
-	private string $configPackagePath;
-
-	private string $configLocalPath;
-
 	private string $composerHash;
 
 	private Generator $generator;
@@ -28,12 +22,13 @@ final class Storage
 	private ?PackageDescriptorEntityInterface $descriptor = null;
 
 
-	public function __construct(string $basePath, string $projectRoot, string $configPackagePath, string $configLocalPath)
-	{
-		$this->basePath = $basePath;
-		$this->configPackagePath = $configPackagePath;
-		$this->configLocalPath = $configLocalPath;
-		$this->composerHash = (@md5_file($projectRoot . '/vendor/composer/installed.json')) ?: md5((string) time());
+	public function __construct(
+		private string $basePath,
+		private string $configPackagePath,
+		private string $configLocalPath,
+		string $projectRoot
+	) {
+		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string) time());
 		$this->generator = new Generator($projectRoot);
 	}
 
@@ -41,7 +36,8 @@ final class Storage
 	public function load(): PackageDescriptorEntityInterface
 	{
 		if ($this->descriptor === null) {
-			if (trim($path = $this->getPath()) === '' || is_file($path) === false || filesize($path) < 10) {
+			$path = $this->getPath();
+			if (trim($path) === '' || is_file($path) === false || filesize($path) < 10) {
 				$this->descriptor = $this->save();
 			}
 			require_once $path;
@@ -49,11 +45,15 @@ final class Storage
 			$class = '\PackageDescriptorEntity';
 			try {
 				if (\class_exists($class) === false) {
-					throw new \RuntimeException('Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.');
+					throw new \RuntimeException(
+						'Package descriptor does not exist, because class "' . $class . '" does not exist or is not autoloaded.',
+					);
 				}
 				$ref = new \ReflectionClass($class);
-			} catch (\ReflectionException $e) {
-				throw new \LogicException('Package description entity does not exist, because class "' . $class . '" does not exist.');
+			} catch (\ReflectionException) {
+				throw new \LogicException(
+					'Package description entity does not exist, because class "' . $class . '" does not exist.',
+				);
 			}
 
 			/** @var PackageDescriptorEntityInterface $service */
@@ -86,7 +86,7 @@ final class Storage
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
 					foreach ((array) ($value['data'] ?? []) as $extensionName => $extensionType) {
-						$extensions[$extensionName] = $extensionType;
+						$extensions[(string) $extensionName] = $extensionType;
 					}
 				} elseif ($param !== 'includes') {
 					$neon[$param][] = [
@@ -108,7 +108,9 @@ final class Storage
 			$tree = [];
 			foreach ($packageInfos as $packageInfo) {
 				$packageData = $packageInfo['data']['data'] ?? $packageInfo['data'];
-				$neonData = \is_array($packageData) ? $packageData : Neon::decode((string) $packageData);
+				$neonData = \is_array($packageData)
+					? $packageData
+					: Neon::decode((string) $packageData);
 				foreach ($neonData as $treeKey => $treeValue) {
 					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
 						unset($neonData[$treeKey]);
@@ -131,34 +133,39 @@ final class Storage
 
 			ksort($treeOthers);
 
-			usort($treeNumbers, function ($left, $right): int {
-				$score = static function ($item): int {
-					if (\is_string($item)) {
-						return 1;
+			usort(
+				$treeNumbers,
+				function ($left, $right): int {
+					$score = static function ($item): int {
+						if (\is_string($item)) {
+							return 1;
+						}
+
+						$array = [];
+						$score = 0;
+						if (\is_iterable($item)) {
+							$score = 2;
+						}
+						if ($item instanceof Entity) {
+							$array = (array) $item->value;
+							$score += 3;
+						}
+						if (isset($array['factory']) === true) {
+							return $score + 1;
+						}
+
+						return $score;
+					};
+
+					$a = $score($left);
+					$b = $score($right);
+					if ($a > $b) {
+						return -1;
 					}
 
-					$array = [];
-					$score = 0;
-					if (\is_iterable($item)) {
-						$score = 2;
-					}
-					if ($item instanceof Entity) {
-						$array = (array) $item->value;
-						$score += 3;
-					}
-					if (isset($array['factory']) === true) {
-						return $score + 1;
-					}
-
-					return $score;
-				};
-
-				if (($a = $score($left)) > ($b = $score($right))) {
-					return -1;
+					return $a === $b ? 0 : 1;
 				}
-
-				return $a === $b ? 0 : 1;
-			});
+			);
 
 			if ($treeOthers !== []) {
 				$return .= str_replace("\n", "\n\t", Neon::encode($treeOthers, Neon::BLOCK));
@@ -172,7 +179,10 @@ final class Storage
 			$return .= "\n" . ExtensionSorter::serializeExtensionList($extensions);
 		}
 
-		FileSystem::write($this->configPackagePath, trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n");
+		FileSystem::write(
+			$this->configPackagePath,
+			trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n"
+		);
 	}
 
 
@@ -195,11 +205,13 @@ final class Storage
 
 		$class->addMethod('getGeneratedDateTimestamp')
 			->setReturnType('int')
-			->setBody('static $cache;'
+			->setBody(
+				'static $cache;'
 				. "\n\n" . 'if ($cache === null) {'
 				. "\n\t" . '$cache = (int) strtotime($this->getGeneratedDateTime());'
 				. "\n" . '}'
-				. "\n\n" . 'return $cache;');
+				. "\n\n" . 'return $cache;'
+			);
 
 		$class->addMethod('getComposerHash')
 			->setReturnType('string')
@@ -215,15 +227,19 @@ final class Storage
 				$property->setAccessible(true);
 				$class->addProperty(
 					ltrim($property->getName(), '_'),
-					$this->makeScalarValueOnly($property->getValue($packageDescriptorEntity))
+					$this->makeScalarValueOnly($property->getValue($packageDescriptorEntity)),
 				)->setProtected()
-					->setType((static function (?\ReflectionType $type) {
-						if ($type instanceof \ReflectionNamedType) {
-							return $type->getName();
-						}
+					->setType(
+						(static function (?\ReflectionType $type) {
+							if ($type instanceof \ReflectionNamedType) {
+								return $type->getName();
+							}
 
-						return null;
-					})($property->getType()));
+							return null;
+						})(
+							$property->getType()
+						)
+					);
 			}
 		}
 
@@ -231,7 +247,7 @@ final class Storage
 			$this->getPath(),
 			'<?php' . "\n\n"
 			. 'declare(strict_types=1);' . "\n\n"
-			. $class
+			. $class,
 		);
 
 		return $packageDescriptorEntity;
@@ -259,7 +275,7 @@ final class Storage
 			$entityFilePath = $dir . '/PackageDescriptorEntity.php';
 
 			try {
-				FileSystem::createDir($dir, 0777);
+				FileSystem::createDir($dir, 0_777);
 				if (\is_file($entityFilePath) === false) {
 					FileSystem::write($entityFilePath, '');
 				}
@@ -273,7 +289,8 @@ final class Storage
 				throw new \RuntimeException(
 					'Can not create PackageDescriptionEntity file: ' . $e->getMessage() . "\n"
 					. 'Package Manager tried to create a directory "' . $dir . '" and a file "' . $entityFilePath . '" inside.',
-					$e->getCode(), $e
+					$e->getCode(),
+					$e,
 				);
 			}
 		}
@@ -287,21 +304,19 @@ final class Storage
 		if (\is_dir($basePath) === false) {
 			return true;
 		}
-		foreach (Finder::find('*')->in($basePath) as $path => $value) {
-			@unlink($path);
+		foreach (array_keys(iterator_to_array(Finder::find('*')->in($basePath))) as $path) {
+			if (\is_file((string) $path)) {
+				@unlink((string) $path);
+			}
 		}
 
 		return @rmdir($basePath);
 	}
 
 
-	/**
-	 * @param mixed|mixed[] $data
-	 * @return mixed|mixed[]
-	 */
-	private function makeScalarValueOnly($data)
+	private function makeScalarValueOnly(mixed $data): mixed
 	{
-		if (\is_array($data) === true) {
+		if (is_iterable($data) === true) {
 			$return = [];
 			foreach ($data as $key => $value) {
 				if (is_object($value) === false) {

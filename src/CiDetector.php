@@ -12,36 +12,26 @@ use Baraja\PackageManager\Exception\PackageDescriptorException;
  */
 final class CiDetector
 {
-	public const CI_APPVEYOR = 'AppVeyor';
+	public const
+		CI_APPVEYOR = 'AppVeyor',
+		CI_BAMBOO = 'Bamboo',
+		CI_BUDDY = 'Buddy',
+		CI_CIRCLE = 'CircleCI',
+		CI_CODESHIP = 'Codeship',
+		CI_CONTINUOUSPHP = 'continuousphp',
+		CI_DRONE = 'drone',
+		CI_GITHUB_ACTIONS = 'GitHub Actions',
+		CI_GITLAB = 'GitLab',
+		CI_JENKINS = 'Jenkins',
+		CI_TEAMCITY = 'TeamCity',
+		CI_TRAVIS = 'Travis CI';
 
-	public const CI_BAMBOO = 'Bamboo';
-
-	public const CI_BUDDY = 'Buddy';
-
-	public const CI_CIRCLE = 'CircleCI';
-
-	public const CI_CODESHIP = 'Codeship';
-
-	public const CI_CONTINUOUSPHP = 'continuousphp';
-
-	public const CI_DRONE = 'drone';
-
-	public const CI_GITHUB_ACTIONS = 'GitHub Actions';
-
-	public const CI_GITLAB = 'GitLab';
-
-	public const CI_JENKINS = 'Jenkins';
-
-	public const CI_TEAMCITY = 'TeamCity';
-
-	public const CI_TRAVIS = 'Travis CI';
-
-	private Env $environment;
+	private Environment $environment;
 
 
 	public function __construct()
 	{
-		$this->environment = new Env;
+		$this->environment = new Environment;
 	}
 
 
@@ -61,7 +51,8 @@ final class CiDetector
 	 */
 	public function detect(): CiInterface
 	{
-		if (($ciServer = $this->detectCurrentCiServer()) === null) {
+		$ciServer = $this->detectCurrentCiServer();
+		if ($ciServer === null) {
 			throw new PackageDescriptorException('No CI server detected in current environment');
 		}
 

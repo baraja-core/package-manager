@@ -22,9 +22,7 @@ final class TaskManager
 			$packageRegistrator = PackageRegistrator::get();
 			$taskManager = new self;
 			$taskManager->addTask(new ConfigLocalNeonTask($packageRegistrator));
-			$taskManager->addTask(new AssetsFromPackageTask($packageRegistrator));
 			$taskManager->addTask(new ClearCacheTask($packageRegistrator));
-			$taskManager->addTask(new ComposerJsonTask($packageRegistrator));
 		}
 
 		return $taskManager;
@@ -67,14 +65,17 @@ final class TaskManager
 		foreach ($this->tasks as $task) {
 			try {
 				$priority = ($doc = (new \ReflectionClass($task))->getDocComment()) !== false
-				&& preg_match('/Priority:\s*(\d+)/', $doc, $docParser) ? (int) $docParser[1] : 10;
+				&& preg_match('/Priority:\s*(\d+)/', $doc, $docParser)
+					? (int) $docParser[1]
+					: 10;
 
-				$return[\get_class($task)] = new TaskItem($task, $priority);
-			} catch (\ReflectionException $e) {
+				$return[$task::class] = new TaskItem($task, $priority);
+			} catch (\ReflectionException) {
+				// Silence is golden.
 			}
 		}
 
-		usort($return, fn (TaskItem $a, TaskItem $b): int => $a->getPriority() < $b->getPriority() ? 1 : -1);
+		usort($return, static fn(TaskItem $a, TaskItem $b): int => $a->getPriority() < $b->getPriority() ? 1 : -1);
 
 		return $return;
 	}

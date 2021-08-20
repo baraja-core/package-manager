@@ -12,12 +12,9 @@ use Nette\DI\Container;
 
 abstract class BaseTask implements ITask
 {
-	protected PackageRegistrator $packageRegistrator;
-
-
-	final public function __construct(PackageRegistrator $packageRegistrator)
-	{
-		$this->packageRegistrator = $packageRegistrator;
+	final public function __construct(
+		protected PackageRegistrator $packageRegistrator,
+	) {
 	}
 
 
@@ -38,11 +35,12 @@ abstract class BaseTask implements ITask
 	 */
 	final public function getContainer(): Container
 	{
-		/** @var Container|null $container */
+		/** @var Container|null */
 		static $container;
 
 		if ($container === null) {
-			if (\is_dir($rootDir = dirname(__DIR__, 5)) === false) {
+			$rootDir = $this->packageRegistrator->getProjectRoot();
+			if (is_dir($rootDir) === false) {
 				throw new \RuntimeException('Root dir "' . $rootDir . '" does not exist.');
 			}
 			$application = $this->bootApplication();

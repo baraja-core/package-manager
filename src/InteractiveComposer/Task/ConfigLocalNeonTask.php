@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Baraja\PackageManager\Composer;
 
 
+use Baraja\Console\Helpers as ConsoleHelpers;
 use Baraja\PackageManager\Helpers;
 use Baraja\PackageManager\PackageRegistrator;
 use Nette\Neon\Neon;
@@ -14,12 +15,11 @@ use Nette\Neon\Neon;
  */
 final class ConfigLocalNeonTask extends BaseTask
 {
-
 	/**
 	 * This credentials will be automatically used for test connection.
 	 * If connection works it will be used for final Neon configuration.
 	 *
-	 * @var string[][][]
+	 * @var array<string, array<int, array<int, string>>>
 	 */
 	private static array $commonCredentials = [
 		'localhost' => [
@@ -44,37 +44,66 @@ final class ConfigLocalNeonTask extends BaseTask
 	 */
 	public function run(): bool
 	{
-		if (\is_file($path = \dirname(__DIR__, 6) . '/app/config/local.neon') === true) {
-			echo 'local.neon exist.' . "\n";
-			echo 'Path: ' . $path;
-
-			return true;
+		$path = \dirname(__DIR__, 6) . '/app/config/local.neon';
+		$environment = getenv();
+		try {
+			$doctrineExist = interface_exists('Doctrine\ORM\EntityManagerInterface');
+		} catch (\Throwable) {
+			$doctrineExist = false;
 		}
-		if (\class_exists('\Baraja\Doctrine\EntityManager') === false) {
-			file_put_contents($path, '');
-
-			return true;
+		if (is_file($path) === true) {
+			echo 'local.neon exist.' . "\n";
+			echo 'Path: ' . $path . "\n";
+			$localNeonContent = trim((string) file_get_contents($path));
+			if ($localNeonContent !== '' || $doctrineExist === false) {
+				return true;
+			}
+			echo 'Configuration is empty.' . "\n";
+		}
+		if (is_array($environment) && $environment !== []) {
+			echo 'Auto detected environment settings: ' . "\n";
+			foreach ($environment as $key => $value) {
+				echo '    ' . ConsoleHelpers::terminalRenderLabel((string) $key) . ': ';
+				echo json_encode($value, JSON_PRETTY_PRINT) . "\n";
+			}
+			echo "\n\n";
+		}
+		$connectionString = $environment['DB_URI'] ?? null;
+		if ($connectionString !== null) {
+			echo 'Use connection string.';
+			return $this->writeConfiguration($path, '');
+		}
+		echo 'Environment variable "DB_URI" does not exist.' . "\n";
+		if ($doctrineExist === false) {
+			echo 'Doctrine not found: Using empty configuration file.';
+			return $this->writeConfiguration($path, []);
 		}
 
 		try {
 			if (PackageRegistrator::getCiDetect() !== null) {
 				echo 'CI environment detected: Use default configuration.' . "\n";
 				echo 'Path: ' . $path;
-				file_put_contents($path, Neon::encode($this->getDefaultTestConfiguration(), Neon::BLOCK));
-
-				return true;
+				return $this->writeConfiguration($path, $this->setupSqliteDatabaseConnection());
 			}
-		} catch (\Exception $e) {
+			echo 'CI environment has not detected.' . "\n";
+		} catch (\Exception) {
+			// Silence is golden.
 		}
 
+		echo "\n-----\n";
 		echo 'local.neon does not exist.' . "\n";
 		echo 'Path: ' . $path;
 
-		if ($this->ask('Create?', ['y', 'n']) === 'y') {
-			file_put_contents($path, Neon::encode(
-				$this->generateMySqlConfig(),
-				Neon::BLOCK
-			));
+		try {
+			if ($this->ask('Start database connection setup?', ['y', 'n']) === 'y') {
+				$this->writeConfiguration($path, $this->setupDatabaseConnection());
+			} else {
+				throw new \RuntimeException('Please generate database configuration.');
+			}
+		} catch (\Throwable $e) {
+			ConsoleHelpers::terminalRenderError($e->getMessage());
+			echo 'Use default Sqlite connection...' . "\n";
+			$this->writeConfiguration($path, $this->setupSqliteDatabaseConnection());
 		}
 
 		return true;
@@ -87,15 +116,33 @@ final class ConfigLocalNeonTask extends BaseTask
 	}
 
 
-	/**
-	 * @return mixed[]
-	 */
-	private function generateMySqlConfig(): array
+	private function writeConfiguration(string $path, mixed $haystack): bool
 	{
-		$connection = new \PDO(
-			'mysql:host=' . ($mySqlCredentials = $this->mySqlConnect())['server'],
+		if (is_array($haystack) && $haystack !== []) {
+			$haystack = trim(Neon::encode(
+				[
+					'baraja.database' => [
+						'connection' => $haystack,
+					],
+				],
+				Neon::BLOCK
+			)) . "\n";
+		}
+
+		return file_put_contents($path, $haystack) !== false;
+	}
+
+
+	/**
+	 * @return array{host: string, dbname: string, user: string, password: string}
+	 */
+	private function setupDatabaseConnection(): array
+	{
+		$mySqlCredentials = $this->mySqlConnect();
+		$createConnection = fn(): \PDO => new \PDO(
+			'mysql:host=' . $mySqlCredentials['server'],
 			$mySqlCredentials['user'],
-			$mySqlCredentials['password']
+			$mySqlCredentials['password'],
 		);
 
 		$databaseList = [];
@@ -104,7 +151,8 @@ final class ConfigLocalNeonTask extends BaseTask
 		$candidateDatabases = [];
 		echo "\n\n";
 
-		if (($showDatabasesSelection = $connection->query('SHOW DATABASES')) !== false) {
+		$showDatabasesSelection = $createConnection()->query('SHOW DATABASES');
+		if ($showDatabasesSelection !== false) {
 			$databaseSelectionList = $showDatabasesSelection->fetchAll() ?: [];
 		} else {
 			$databaseSelectionList = [];
@@ -121,22 +169,27 @@ final class ConfigLocalNeonTask extends BaseTask
 			$usedDatabase = $candidateDatabases[0];
 		}
 		while (true) {
-			if ($usedDatabase === null && preg_match('/^\d+$/', $usedDatabase = $this->ask('Which database use? Type number or specific name. Type "new" for create new.') ?? '')) {
-				if (isset($databaseList[$usedDatabaseKey = (int) $usedDatabase])) {
-					$usedDatabase = $databaseList[$usedDatabaseKey];
-					break;
-				}
+			if ($usedDatabase === null) {
+				$usedDatabase = (string) $this->ask('Which database use? Type number or specific name. Type "new" for create new.');
+				if (preg_match('/^\d+$/', $usedDatabase)) {
+					$usedDatabaseKey = (int) $usedDatabase;
+					if (isset($databaseList[$usedDatabaseKey])) {
+						$usedDatabase = $databaseList[$usedDatabaseKey];
+						break;
+					}
 
-				echo 'Selection "' . $usedDatabase . '" is out of range.' . "\n";
+					echo 'Selection "' . $usedDatabase . '" is out of range.' . "\n";
+				}
 			}
 			if (\in_array($usedDatabase, $databaseList, true)) {
 				break;
 			}
 			if (strtolower($usedDatabase) === 'new') {
 				while (true) {
-					if (preg_match('/^[a-z0-9_\-]+$/', (string) $usedDatabase = $this->ask('How is the database name?'))) {
+					$usedDatabase = (string) $this->ask('How is the database name?');
+					if (preg_match('/^[a-z0-9_\-]+$/', $usedDatabase)) {
 						if (!\in_array($usedDatabase, $databaseList, true)) {
-							$this->createDatabase((string) $usedDatabase, $connection);
+							$this->createDatabase($usedDatabase, $createConnection);
 							break;
 						}
 
@@ -164,8 +217,9 @@ final class ConfigLocalNeonTask extends BaseTask
 					break;
 				}
 				echo 'Database "' . $usedDatabase . '" does not exist.' . "\n";
-				if ($this->ask('Create database "' . ($newDatabaseName = strtolower($usedDatabase)) . '"?', ['y', 'n']) === 'y') {
-					$this->createDatabase($newDatabaseName, $connection);
+				$newDatabaseName = strtolower($usedDatabase);
+				if ($this->ask('Create database "' . $newDatabaseName . '"?', ['y', 'n']) === 'y') {
+					$this->createDatabase($newDatabaseName, $createConnection);
 					break;
 				}
 			}
@@ -174,14 +228,10 @@ final class ConfigLocalNeonTask extends BaseTask
 		}
 
 		return [
-			'baraja.database' => [
-				'connection' => [
-					'host' => $mySqlCredentials['server'],
-					'dbname' => $usedDatabase,
-					'user' => $mySqlCredentials['user'],
-					'password' => $mySqlCredentials['password'],
-				],
-			],
+			'host' => $mySqlCredentials['server'],
+			'dbname' => $usedDatabase,
+			'user' => $mySqlCredentials['user'],
+			'password' => $mySqlCredentials['password'],
 		];
 	}
 
@@ -189,7 +239,7 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Get mysql connection credentials and return fully works credentials or in case of error empty array.
 	 *
-	 * @return string[]
+	 * @return array{server: string, user: string, password: string}
 	 */
 	private function mySqlConnect(): array
 	{
@@ -205,7 +255,8 @@ final class ConfigLocalNeonTask extends BaseTask
 					$connectionServer = $server;
 					[$connectionUser, $connectionPassword] = $credential;
 					break;
-				} catch (\PDOException $e) {
+				} catch (\PDOException) {
+					// Connection does not work.
 				}
 			}
 		}
@@ -226,21 +277,27 @@ final class ConfigLocalNeonTask extends BaseTask
 		}
 
 		for ($ttl = 10; $ttl > 0; $ttl--) {
-			if (($connectionServer = $this->ask('Server (hostname) [empty for "127.0.0.1"]:')) === null) {
+			$connectionServer = $this->ask('Server (hostname) [empty for "127.0.0.1"]:');
+			if ($connectionServer === null) {
 				echo 'Server "127.0.0.1" has been used.';
 				$connectionServer = '127.0.0.1';
 			}
-			if (($connectionUser = $this->ask('User [empty for "root"]:')) === null) {
+			$connectionUser = $this->ask('User [empty for "root"]:');
+			if ($connectionUser === null) {
 				echo 'User "root" has been used.';
 				$connectionUser = 'root';
 			}
-			while (($connectionPassword = trim($this->ask('Password [can not be empty!]:') ?? '')) === '') {
+			do {
+				$connectionPassword = trim($this->ask('Password [can not be empty!]:') ?? '');
+				if ($connectionPassword !== '') {
+					break;
+				}
 				Helpers::terminalRenderError('Password can not be empty!');
 				echo "\n\n\n" . 'Information to resolve this issue:' . "\n\n";
 				echo 'For the best protection of the web server and database,' . "\n";
 				echo 'it is important to always set a passphrase that must not be an empty string.' . "\n";
 				echo 'If you are using a database without a password, set the password first and then install again.';
-			}
+			} while (true);
 			echo "\n\n";
 
 			try {
@@ -259,11 +316,11 @@ final class ConfigLocalNeonTask extends BaseTask
 			}
 		}
 
-		return [];
+		throw new \LogicException('MySql connection credentials can not be resolved.');
 	}
 
 
-	private function createDatabase(string $name, \PDO $connection): void
+	private function createDatabase(string $name, callable $createConnection): void
 	{
 		$sql = 'CREATE DATABASE IF NOT EXISTS `' . $name . '`; ' . "\n"
 			. 'DEFAULT CHARACTER SET utf8 COLLATE utf8_general_ci';
@@ -271,6 +328,8 @@ final class ConfigLocalNeonTask extends BaseTask
 		echo 'Creating database...' . "\n";
 		echo 'Command: ' . $sql . "\n\n";
 
+		/** @var \PDO $connection */
+		$connection = $createConnection();
 		if ($connection->exec($sql) !== 1) {
 			Helpers::terminalRenderError('Can not create database!');
 			echo "\n\n";
@@ -283,9 +342,15 @@ final class ConfigLocalNeonTask extends BaseTask
 		echo 'Database was successfully created.' . "\n\n";
 		echo 'Testing database...' . "\n";
 		echo 'Command: ' . $checkSql . "\n\n";
+		echo 'Creating database...' . "\n";
 
+		/** @var \PDO $connection */
+		$connection = $createConnection();
 		if ($connection->exec($checkSql) === 1) {
-			echo 'Database is OK.';
+			echo 'Database has been created.' . "\n";
+			echo 'Checking...' . "\n";
+			sleep(1);
+			echo 'Done.' . "\n\n";
 		} else {
 			Helpers::terminalRenderError('Can not create database. Please create manually and return here.');
 			echo "\n\n";
@@ -297,19 +362,23 @@ final class ConfigLocalNeonTask extends BaseTask
 	/**
 	 * Default configuration for CI and test environment.
 	 *
-	 * @return mixed[]
+	 * @return array{url: string}
 	 */
-	private function getDefaultTestConfiguration(): array
+	private function setupSqliteDatabaseConnection(): array
 	{
+		if (
+			!function_exists('sqlite_open')
+			&& !class_exists('SQLite3')
+			&& !extension_loaded('sqlite3')
+		) {
+			trigger_error(
+				'Extension Sqlite3 may not be available for test cases. '
+				. 'Please check your environment configuration.',
+			);
+		}
+
 		return [
-			'baraja.database' => [
-				'connection' => [
-					'host' => 'localhost',
-					'dbname' => 'test',
-					'user' => 'root',
-					'password' => 'root',
-				],
-			],
+			'url' => 'sqlite:///:memory:',
 		];
 	}
 }

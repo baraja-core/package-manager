@@ -8,15 +8,15 @@ namespace Baraja\PackageManager;
 use Baraja\Console\Helpers as ConsoleHelpers;
 use Baraja\PackageManager\Composer\TaskManager;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
-use Composer\Autoload\ClassLoader;
+use Baraja\PathResolvers\Resolvers\RootDirResolver;
+use Baraja\PathResolvers\Resolvers\TempDirResolver;
+use Baraja\PathResolvers\Resolvers\VendorResolver;
 use Nette\Utils\FileSystem;
 use Tracy\Debugger;
 
 class PackageRegistrator
 {
 	private static string $projectRoot;
-
-	private static string $configPath;
 
 	private static string $configPackagePath;
 
@@ -27,44 +27,41 @@ class PackageRegistrator
 	private static bool $configurationMode = false;
 
 
-	public function __construct(?string $projectRoot = null, ?string $tempPath = null)
+	public function __construct(?string $rootDir = null, ?string $tempDir = null)
 	{
 		static $created = false;
 
 		if ($created === true) {
 			return;
 		}
-		if ($projectRoot === null || $tempPath === null) { // path auto detection
-			try {
-				$loaderRc = class_exists(ClassLoader::class) ? new \ReflectionClass(ClassLoader::class) : null;
-				$vendorDir = $loaderRc ? dirname((string) $loaderRc->getFileName(), 2) : null;
-			} catch (\ReflectionException $e) {
-				$vendorDir = null;
+		if ($rootDir === null || $tempDir === null) { // path auto detection
+			$rootDirResolver = new RootDirResolver(new VendorResolver);
+			if ($rootDir === null) {
+				$rootDir = $rootDirResolver->get();
 			}
-			if ($vendorDir !== null && PHP_SAPI === 'cli' && (strncmp($vendorDir, 'phar://', 7) === 0 || strncmp($vendorDir, '/usr/share', 10) === 0)) {
-				$vendorDir = (string) preg_replace('/^(.+?[\\\\|\/]vendor)(.*)$/', '$1', debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS)[0]['file']);
-			}
-			if ($projectRoot === null) {
-				if ($vendorDir === null) {
-					throw new \RuntimeException('Can not resolve "vendorDir". Did you generate Composer autoloader by "composer install" or "composer dump" command?');
-				}
-				$projectRoot = dirname($vendorDir);
-			}
-			if ($tempPath === null) {
-				$tempPath = rtrim($projectRoot, '/') . '/temp';
+			if ($tempDir === null) {
+				$tempDir = (new TempDirResolver($rootDirResolver))->get();
 			}
 		}
 		if (Debugger::$logDirectory === null) {
-			FileSystem::createDir($projectRoot . '/log');
-			Debugger::enable(false, $projectRoot . '/log');
+			FileSystem::createDir($rootDir . '/log');
+			try {
+				Debugger::enable(false, $rootDir . '/log');
+			} catch (\Throwable $e) {
+				if (PHP_SAPI === 'cli') {
+					ConsoleHelpers::terminalRenderError($e->getMessage());
+					ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
+				} else {
+					trigger_error($e->getMessage());
+				}
+			}
 		}
 
 		$created = true;
-		self::$projectRoot = rtrim($projectRoot, '/');
-		self::$configPath = self::$projectRoot . '/app/config/common.neon';
+		self::$projectRoot = rtrim($rootDir, DIRECTORY_SEPARATOR);
 		self::$configPackagePath = self::$projectRoot . '/app/config/package.neon';
 		self::$configLocalPath = self::$projectRoot . '/app/config/local.neon';
-		$storage = new Storage($tempPath, $projectRoot, self::$configPackagePath, self::$configLocalPath);
+		$storage = new Storage($tempDir, self::$configPackagePath, self::$configLocalPath, $rootDir);
 		try {
 			self::$packageDescriptorEntity = $storage->load();
 		} catch (PackageDescriptorException $e) {
@@ -138,9 +135,10 @@ class PackageRegistrator
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
-			if (\is_dir($tempDir = dirname(__DIR__, 4) . '/temp')) {
+			$tempDir = dirname(__DIR__, 4) . '/temp';
+			if (is_dir($tempDir)) {
 				foreach (new \FilesystemIterator($tempDir) as $item) {
-					FileSystem::delete(\is_string($item) ? $item : (string) $item->getPathname());
+					FileSystem::delete(is_string($item) ? $item : (string) $item->getPathname());
 				}
 			}
 		} catch (\Throwable $e) {
@@ -148,22 +146,29 @@ class PackageRegistrator
 		}
 
 		echo 'Init Composer autoload' . "\n" . '======================' . "\n";
-		$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
-		if (\is_file($composerFileAutoloadPath)) {
-			foreach (require $composerFileAutoloadPath as $file) {
-				if (strpos((string) file_get_contents($file), '--package-registrator-task--') !== false) {
-					require_once $file;
+		try {
+			$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
+			if (is_file($composerFileAutoloadPath)) {
+				foreach (require $composerFileAutoloadPath as $file) {
+					if (str_contains((string) file_get_contents($file), '--package-registrator-task--')) {
+						require_once $file;
+					}
 				}
+				ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
+			} else {
+				ConsoleHelpers::terminalRenderError('Can not load autoload files.');
 			}
-			ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
-		} else {
-			ConsoleHelpers::terminalRenderError('Can not load autoload files.');
+		} catch (\Throwable $e) {
+			ConsoleHelpers::terminalRenderError($e->getMessage());
+			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
+			Debugger::log($e, 'critical');
+			echo 'Error was logged to file.' . "\n\n";
 		}
 
 		try {
 			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
 			(new InteractiveComposer)->run(TaskManager::get());
-		} catch (\Exception $e) {
+		} catch (\Throwable $e) {
 			ConsoleHelpers::terminalRenderError($e->getMessage());
 			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
 			Debugger::log($e, 'critical');
@@ -187,7 +192,7 @@ class PackageRegistrator
 			$ci = null;
 		}
 
-		echo ($ci === null ? 'No detected.' : 'Detected 👍') . "\n";
+		echo($ci === null ? 'No detected.' : 'Detected 👍') . "\n";
 		if ($ci !== null) {
 			echo ' | CI name: ' . $ci->getCiName() . "\n";
 			echo ' | is Pull request? ' . $ci->isPullRequest()->describe() . "\n";
@@ -206,10 +211,13 @@ class PackageRegistrator
 	 */
 	public static function getCiDetect(): ?CiInterface
 	{
-		/** @var CiInterface|null $cache */
+		/** @var CiInterface|null */
 		static $cache;
-		if ($cache === null && ($ciDetector = new CiDetector)->isCiDetected()) {
-			$cache = $ciDetector->detect();
+		if ($cache === null) {
+			$ciDetector = new CiDetector;
+			if ($ciDetector->isCiDetected()) {
+				$cache = $ciDetector->detect();
+			}
 		}
 
 		return $cache;

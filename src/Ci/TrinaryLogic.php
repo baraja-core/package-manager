@@ -45,7 +45,7 @@ final class TrinaryLogic
 
 	private static function create(int $value): self
 	{
-		return self::$registry[$value] = self::$registry[$value] ?? new self($value);
+		return self::$registry[$value] ??= new self($value);
 	}
 
 

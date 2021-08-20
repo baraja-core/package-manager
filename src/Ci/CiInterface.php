@@ -10,7 +10,7 @@ interface CiInterface
 	/**
 	 * Return true if this CI was detected
 	 */
-	public function isDetected(Env $env): bool;
+	public function isDetected(Environment $environment): bool;
 
 	/**
 	 * Get name of the CI server type

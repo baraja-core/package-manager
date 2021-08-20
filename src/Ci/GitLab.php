@@ -7,9 +7,9 @@ namespace Baraja\PackageManager;
 
 class GitLab extends AbstractCi
 {
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('GITLAB_CI') !== false;
+		return $environment->get('GITLAB_CI') !== false;
 	}
 
 
@@ -23,7 +23,7 @@ class GitLab extends AbstractCi
 	{
 		return TrinaryLogic::createFromBoolean(
 			$this->env->get('CI_MERGE_REQUEST_ID') !== false
-			|| $this->env->get('CI_EXTERNAL_PULL_REQUEST_IID') !== false
+			|| $this->env->get('CI_EXTERNAL_PULL_REQUEST_IID') !== false,
 		);
 	}
 

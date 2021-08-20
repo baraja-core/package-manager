@@ -10,9 +10,9 @@ class GitHubActions extends AbstractCi
 	public const GITHUB_BASE_URL = 'https://github.com';
 
 
-	public function isDetected(Env $env): bool
+	public function isDetected(Environment $environment): bool
 	{
-		return $env->get('GITHUB_ACTIONS') !== false;
+		return $environment->get('GITHUB_ACTIONS') !== false;
 	}
 
 
@@ -40,7 +40,7 @@ class GitHubActions extends AbstractCi
 			'%s/%s/commit/%s/checks',
 			self::GITHUB_BASE_URL,
 			$this->env->get('GITHUB_REPOSITORY'),
-			$this->env->get('GITHUB_SHA')
+			$this->env->get('GITHUB_SHA'),
 		);
 	}
 
@@ -70,7 +70,7 @@ class GitHubActions extends AbstractCi
 		return sprintf(
 			'%s/%s',
 			self::GITHUB_BASE_URL,
-			$this->env->get('GITHUB_REPOSITORY')
+			$this->env->get('GITHUB_REPOSITORY'),
 		);
 	}
 }

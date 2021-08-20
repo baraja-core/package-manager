@@ -13,12 +13,12 @@ final class ExtensionSorter
 	/** @throws \Error */
 	public function __construct()
 	{
-		throw new \Error('Class ' . \get_class($this) . ' is static and cannot be instantiated.');
+		throw new \Error('Class ' . static::class . ' is static and cannot be instantiated.');
 	}
 
 
 	/**
-	 * @param string[]|\stdClass[]|mixed[] $extensions
+	 * @param array<string, string|\stdClass|mixed> $extensions
 	 */
 	public static function serializeExtensionList(array $extensions): string
 	{
@@ -31,12 +31,12 @@ final class ExtensionSorter
 			} elseif (\is_array($definition) && isset($definition['value'])) {
 				$type = (string) $definition['value'];
 			} else {
-				throw new \InvalidArgumentException('Definition type must be string, object or array, but "' . \gettype($definition) . '" given.');
+				throw new \InvalidArgumentException('Definition type must be string, object or array, but "' . get_debug_type($definition) . '" given.');
 			}
 			if (class_exists($type) === false) {
 				throw new \RuntimeException(
 					'Package manager: Extension "' . $type . '" does not exist. Did you use autoload correctly?' . "\n"
-					. 'Hint: Try read article about autoloading: https://php.baraja.cz/autoloading-trid'
+					. 'Hint: Try read article about autoloading: https://php.baraja.cz/autoloading-trid',
 				);
 			}
 
@@ -66,12 +66,21 @@ final class ExtensionSorter
 		if (\class_exists($class) === false) {
 			throw new \RuntimeException('Extension class "' . $class . '" does not exist.');
 		}
-		if (\method_exists($class, $method) === false) {
-			return null;
+		$return = [];
+		$ref = new \ReflectionClass($class);
+		foreach ($ref->getAttributes(ExtensionsMeta::class) as $attribute) {
+			$return[] = $attribute->getArguments()[$method] ?? [];
+		}
+		if (\method_exists($class, $method) === true) { // back compatibility
+			/** @phpstan-ignore-next-line */
+			$methodReturn = ((array) call_user_func($class . '::' . $method)) ?: null;
+			if ($methodReturn !== null) {
+				$return[] = $methodReturn;
+			}
 		}
 
 		/** @phpstan-ignore-next-line */
-		return ((array) call_user_func($class . '::' . $method)) ?: null;
+		return array_merge([], ...$return) ?: null;
 	}
 
 
@@ -85,10 +94,12 @@ final class ExtensionSorter
 		$registered = [];
 		$castlingTtl = [];
 		while ($candidates !== []) {
-			if (($candidateKey = array_keys($candidates)[0] ?? null) === null) {
+			$candidateKey = array_keys($candidates)[0] ?? null;
+			if ($candidateKey === null) {
 				break;
 			}
-			if (($candidate = $candidates[$candidateKey] ?? null) === null) {
+			$candidate = $candidates[$candidateKey] ?? null;
+			if ($candidate === null) {
 				throw new \RuntimeException('Candidate key "' . $candidateKey . '" is broken.');
 			}
 
@@ -96,20 +107,20 @@ final class ExtensionSorter
 			if ($return === []) {
 				$position = 0;
 			} else {
-				foreach ($return as $returnPosition => $returnItem) {
+				foreach (array_keys($return) as $returnPosition) {
 					try {
 						if (self::canBeItemAddedHere($candidate, $returnPosition, $return, $registered)) {
 							$position = $returnPosition;
 							break;
 						}
-					} catch (\InvalidArgumentException $e) { // move candidate item to end of candidatest list
+					} catch (\InvalidArgumentException) { // move candidate item to end of candidatest list
 						if (isset($castlingTtl[$candidate['type']]) === false) {
 							$castlingTtl[$candidate['type']] = 0;
 						}
 						if (($castlingTtl[$candidate['type']]++) > self::TRY_SORT_TTL) {
 							throw new \RuntimeException(
 								'Infinite recursion was detected while trying to sort the extension.' . "\n"
-								. 'Possible solution: If you want to register extensions, simplify the conditions so that they do not refute each other.'
+								. 'Possible solution: If you want to register extensions, simplify the conditions so that they do not refute each other.',
 							);
 						}
 						if (\count($candidates) > 1) {
@@ -132,7 +143,7 @@ final class ExtensionSorter
 				throw new \RuntimeException(
 					'Internal conflict in dependencies: Item "' . $candidate['type'] . '" requires conditions that conflict with another extension.' . "\n"
 					. 'To solve this issue: Please check your items configuration and use tree dependencies only.' . "\n"
-					. 'Sucessfully registered extensions: "' . implode('", "', $registered) . '".'
+					. 'Sucessfully registered extensions: "' . implode('", "', $registered) . '".',
 				);
 			}
 		}
@@ -223,7 +234,7 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string|mixed[]|\stdClass[] $definition
+	 * @param string|array<string, \stdClass|mixed> $definition
 	 */
 	private static function encodeExtensionDefinition($definition): string
 	{

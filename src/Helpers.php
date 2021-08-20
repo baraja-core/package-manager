@@ -10,11 +10,10 @@ namespace Baraja\PackageManager;
  */
 final class Helpers
 {
-
 	/** @throws \Error */
 	public function __construct()
 	{
-		throw new \Error('Class ' . get_class($this) . ' is static and cannot be instantiated.');
+		throw new \Error('Class ' . static::class . ' is static and cannot be instantiated.');
 	}
 
 
@@ -46,11 +45,14 @@ final class Helpers
 	{
 		static $disabled;
 		if (\function_exists($functionName) === true) {
-			if ($disabled === null && \is_string($disableFunctions = ini_get('disable_functions'))) {
-				$disabled = explode(',', (string) $disableFunctions);
+			if ($disabled === null) {
+				$disableFunctions = ini_get('disable_functions');
+				if (is_string($disableFunctions)) {
+					$disabled = explode(',', $disableFunctions);
+				}
 			}
 
-			return \in_array($functionName, $disabled, true) === false;
+			return \in_array($functionName, $disabled ?? [], true) === false;
 		}
 
 		return false;
@@ -61,16 +63,13 @@ final class Helpers
 	 * Convert Nette SmartObject with private methods to Nette ArrayHash structure.
 	 * While converting call getters, so you get only properties which you can get.
 	 * Function supports recursive objects structure. Public properties will be included.
-	 *
-	 * @param mixed $input
-	 * @return mixed
 	 */
-	public static function haystackToArray($input)
+	public static function haystackToArray(mixed $input): mixed
 	{
 		if (\is_object($input)) {
 			try {
 				$reflection = new \ReflectionClass($input);
-			} catch (\ReflectionException $e) {
+			} catch (\ReflectionException) {
 				return null;
 			}
 
@@ -82,7 +81,10 @@ final class Helpers
 					$return[$property->getName()] = self::haystackToArray($property->getValue($input));
 				}
 				foreach ($reflection->getMethods() as $method) {
-					if ($method->name !== 'getReflection' && preg_match('/^(get|is)(.+)$/', $method->name, $_method)) {
+					if (
+						$method->name !== 'getReflection'
+						&& preg_match('/^(get|is)(.+)$/', $method->name, $_method)
+					) {
 						$return[lcfirst($_method[2])] = self::haystackToArray($input->{$method->name}());
 					}
 				}
@@ -152,7 +154,9 @@ final class Helpers
 			$staticTtl++;
 
 			if ($staticTtl > 16) {
-				throw new \RuntimeException('The maximum invalid response limit was exceeded. Current limit: ' . $staticTtl);
+				throw new \RuntimeException(
+					'The maximum invalid response limit was exceeded. Current limit: ' . $staticTtl,
+				);
 			}
 
 			return self::terminalInteractiveAsk($question, $possibilities);
@@ -166,15 +170,5 @@ final class Helpers
 	public static function terminalRenderError(string $message): void
 	{
 		\Baraja\Console\Helpers::terminalRenderError($message);
-	}
-
-
-	/**
-	 * Returns number of characters (not bytes) in UTF-8 string.
-	 * That is the number of Unicode code points which may differ from the number of graphemes.
-	 */
-	private static function length(string $s): int
-	{
-		return function_exists('mb_strlen') ? mb_strlen($s, 'UTF-8') : strlen(utf8_decode($s));
 	}
 }
