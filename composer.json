@@ -37,5 +37,10 @@
 			"vendor/bin/phpstan analyse src -c phpstan.neon --level 8 --no-progress"
 		]
 	},
-	"minimum-stability": "stable"
+	"minimum-stability": "stable",
+	"config": {
+		"platform": {
+			"php": "7.4.9"
+		}
+	}
 }

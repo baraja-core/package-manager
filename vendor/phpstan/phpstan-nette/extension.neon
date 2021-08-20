@@ -1,0 +1,95 @@
+parameters:
+	additionalConstructors:
+		- Nette\Application\UI\Presenter::startup
+	stubFiles:
+		- stubs/Application/Routers/RouteList.stub
+		- stubs/Application/UI/Component.stub
+		- stubs/ComponentModel/IComponent.stub
+		- stubs/Database/ResultSet.stub
+		- stubs/Database/Table/ActiveRow.stub
+		- stubs/Database/Table/Selection.stub
+		- stubs/Forms/Container.stub
+		- stubs/Forms/Form.stub
+		- stubs/Forms/Rules.stub
+		- stubs/Http/SessionSection.stub
+		- stubs/Routing/Router.stub
+		- stubs/Utils/ArrayHash.stub
+		- stubs/Utils/Html.stub
+	universalObjectCratesClasses:
+		- Nette\Application\UI\ITemplate
+		- Nette\Application\UI\Template
+		- Nette\Bridges\ApplicationLatte\Template
+		- Nette\Database\IRow
+		- Nette\Http\SessionSection
+		- Nette\Security\Identity
+		- Nette\Security\SimpleIdentity
+	earlyTerminatingMethodCalls:
+		Nette\Application\UI\Component:
+			- error
+		Nette\Application\UI\Presenter:
+			- redirect
+			- redirectUrl
+			- sendJson
+			- sendPayload
+			- sendResponse
+			- sendTemplate
+			- terminate
+			- forward
+
+services:
+	-
+		class: PHPStan\Reflection\Nette\HtmlClassReflectionExtension
+		tags:
+			- phpstan.broker.propertiesClassReflectionExtension
+			- phpstan.broker.methodsClassReflectionExtension
+
+	-
+		class: PHPStan\Reflection\Nette\NetteObjectClassReflectionExtension
+		tags:
+			- phpstan.broker.propertiesClassReflectionExtension
+			- phpstan.broker.methodsClassReflectionExtension
+
+	-
+		class: PHPStan\Type\Nette\ComponentModelArrayAccessDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\ComponentModelDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\ComponentLookupDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\ComponentGetPresenterDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\FormsBaseControlDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\PresenterGetSessionReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\ServiceLocatorDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Type\Nette\FormContainerValuesDynamicReturnTypeExtension
+		tags:
+			- phpstan.broker.dynamicMethodReturnTypeExtension
+
+	-
+		class: PHPStan\Rule\Nette\PresenterInjectedPropertiesExtension
+		tags:
+			- phpstan.properties.readWriteExtension
