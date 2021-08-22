@@ -7,6 +7,7 @@ namespace Baraja\PackageManager;
 
 use Baraja\Console\Helpers as ConsoleHelpers;
 use Baraja\Lock\Lock;
+use Baraja\Lock\Transaction\FileTransactionProvider;
 use Baraja\PackageManager\Composer\TaskManager;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Baraja\PathResolvers\Resolvers\RootDirResolver;
@@ -35,6 +36,7 @@ class PackageRegistrator implements TerminatorHandler
 	public function __construct(?string $rootDir = null, ?string $tempDir = null)
 	{
 		if (PHP_SAPI !== 'cli') {
+			self::setupInternalLock($tempDir);
 			Lock::wait(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 120000, ttl: 50000);
 		}
 		static $created = false;
@@ -116,6 +118,7 @@ class PackageRegistrator implements TerminatorHandler
 	 */
 	public static function composerPostAutoloadDump(): void
 	{
+		self::setupInternalLock();
 		if (PHP_SAPI !== 'cli') {
 			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
 		}
@@ -258,6 +261,15 @@ class PackageRegistrator implements TerminatorHandler
 	public static function getPackageDescriptorEntityStatic(): PackageDescriptorEntityInterface
 	{
 		return self::$packageDescriptorEntity;
+	}
+
+
+	private static function setupInternalLock(?string $tempDir = null): void
+	{
+		if ($tempDir === null) {
+			$tempDir = (new TempDirResolver(new RootDirResolver(new VendorResolver)))->get();
+		}
+		Lock::setTransactionProvider(new FileTransactionProvider($tempDir . '/cache/lock/package-manager'));
 	}
 
 
