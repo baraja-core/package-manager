@@ -6,16 +6,21 @@ namespace Baraja\PackageManager;
 
 
 use Baraja\Console\Helpers as ConsoleHelpers;
+use Baraja\Lock\Lock;
 use Baraja\PackageManager\Composer\TaskManager;
 use Baraja\PackageManager\Exception\PackageDescriptorException;
 use Baraja\PathResolvers\Resolvers\RootDirResolver;
 use Baraja\PathResolvers\Resolvers\TempDirResolver;
 use Baraja\PathResolvers\Resolvers\VendorResolver;
+use Baraja\ShutdownTerminator\Terminator;
+use Baraja\ShutdownTerminator\TerminatorHandler;
 use Nette\Utils\FileSystem;
 use Tracy\Debugger;
 
-class PackageRegistrator
+class PackageRegistrator implements TerminatorHandler
 {
+	private const MAINTENANCE_LOCK = 'package-manager-maintenance';
+
 	private static string $projectRoot;
 
 	private static string $configPackagePath;
@@ -29,6 +34,7 @@ class PackageRegistrator
 
 	public function __construct(?string $rootDir = null, ?string $tempDir = null)
 	{
+		Lock::wait(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 120000, ttl: 50000);
 		static $created = false;
 
 		if ($created === true) {
@@ -87,6 +93,13 @@ class PackageRegistrator
 	}
 
 
+	final public function processTerminatorHandler(): void
+	{
+		echo "\n\n" . 'Stopping transaction...' . "\n\n";
+		Lock::stopTransaction(self::MAINTENANCE_LOCK);
+	}
+
+
 	/**
 	 * Smart helper for automated Composer actions. This method will be called automatically.
 	 *
@@ -98,6 +111,7 @@ class PackageRegistrator
 	 */
 	public static function composerPostAutoloadDump(): void
 	{
+		Lock::stopTransaction(self::MAINTENANCE_LOCK);
 		if (PHP_SAPI !== 'cli') {
 			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
 		}
@@ -120,6 +134,14 @@ class PackageRegistrator
 		echo "\n" . 'CI status' . "\n" . '=========' . "\n\n";
 		self::composerRenderCiDetectorInfo();
 		echo "\n";
+
+		echo 'Starting safe transaction... ';
+		Terminator::addHandler(self::get());
+		Lock::startTransaction(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 60000);
+		echo 'started.' . "\n";
+		echo 'Waiting for empty request pool...';
+		sleep(3);
+		echo "\n\n";
 
 		echo 'Runtime mode' . "\n" . '============' . "\n\n";
 		if (isset($_SERVER['argv'][2]) === true && $_SERVER['argv'][2] === '--') {
