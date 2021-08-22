@@ -34,7 +34,9 @@ class PackageRegistrator implements TerminatorHandler
 
 	public function __construct(?string $rootDir = null, ?string $tempDir = null)
 	{
-		Lock::wait(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 120000, ttl: 50000);
+		if (PHP_SAPI !== 'cli') {
+			Lock::wait(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 120000, ttl: 50000);
+		}
 		static $created = false;
 
 		if ($created === true) {
@@ -95,6 +97,9 @@ class PackageRegistrator implements TerminatorHandler
 
 	final public function processTerminatorHandler(): void
 	{
+		if (PHP_SAPI !== 'cli') {
+			return;
+		}
 		echo "\n\n" . 'Stopping transaction...' . "\n\n";
 		Lock::stopTransaction(self::MAINTENANCE_LOCK);
 	}
@@ -111,9 +116,13 @@ class PackageRegistrator implements TerminatorHandler
 	 */
 	public static function composerPostAutoloadDump(): void
 	{
-		Lock::stopTransaction(self::MAINTENANCE_LOCK);
 		if (PHP_SAPI !== 'cli') {
 			throw new \RuntimeException('PackageRegistrator: Composer action can be called only in CLI environment.');
+		}
+		if (Lock::isTransactionRunning(self::MAINTENANCE_LOCK)) {
+			echo 'Stopping last running transaction... ';
+			Lock::stopTransaction(self::MAINTENANCE_LOCK);
+			echo 'done.' . "\n\n";
 		}
 
 		echo "\n" . 'Composer post autoload dump task manager' . "\n" . str_repeat('=', 40) . "\n\n";
