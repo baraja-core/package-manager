@@ -17,6 +17,7 @@ use Baraja\ShutdownTerminator\Terminator;
 use Baraja\ShutdownTerminator\TerminatorHandler;
 use Nette\Utils\FileSystem;
 use Tracy\Debugger;
+use Tracy\ILogger;
 
 class PackageRegistrator implements TerminatorHandler
 {
@@ -148,59 +149,64 @@ class PackageRegistrator implements TerminatorHandler
 		echo "\n";
 
 		echo 'Starting safe transaction... ';
-		Terminator::addHandler(self::get());
-		Lock::startTransaction(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 60000);
-		echo 'started.' . "\n";
-		echo 'Waiting for empty request pool...';
-		sleep(3);
-		echo "\n\n";
-
-		echo 'Runtime mode' . "\n" . '============' . "\n\n";
-		if (isset($_SERVER['argv'][2]) === true && $_SERVER['argv'][2] === '--') {
-			self::$configurationMode = true;
-		}
-		if (self::isConfigurationMode() === true) {
-			echo '️⚙️️  This is a advance configuration mode.' . "\n";
-		} else {
-			echo '️⚔️  This is a regular mode.' . "\n";
-			echo '   If you want use advance configuration, please use command "composer dump --".' . "\n";
-		}
-		echo "\n";
-
 		try {
-			FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
-			$tempDir = dirname(__DIR__, 4) . '/temp';
-			if (is_dir($tempDir)) {
-				foreach (new \FilesystemIterator($tempDir) as $item) {
-					FileSystem::delete(is_string($item) ? $item : (string) $item->getPathname());
-				}
+			Lock::startTransaction(self::MAINTENANCE_LOCK, maxExecutionTimeMs: 60000);
+			echo 'started.' . "\n";
+			echo 'Waiting for empty request pool...';
+			sleep(3);
+			echo "\n\n";
+
+			echo 'Runtime mode' . "\n" . '============' . "\n\n";
+			if (isset($_SERVER['argv'][2]) === true && $_SERVER['argv'][2] === '--') {
+				self::$configurationMode = true;
 			}
-		} catch (\Throwable $e) {
-			trigger_error($e->getMessage());
-		}
+			if (self::isConfigurationMode() === true) {
+				echo '️⚙️️  This is a advance configuration mode.' . "\n";
+			} else {
+				echo '️⚔️  This is a regular mode.' . "\n";
+				echo '   If you want use advance configuration, please use command "composer dump --".' . "\n";
+			}
+			echo "\n";
 
-		echo 'Init Composer autoload' . "\n" . '======================' . "\n";
-		try {
-			$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
-			if (is_file($composerFileAutoloadPath)) {
-				foreach (require $composerFileAutoloadPath as $file) {
-					if (str_contains((string) file_get_contents($file), '--package-registrator-task--')) {
-						require_once $file;
+			try {
+				FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
+				FileSystem::delete(dirname(__DIR__, 4) . '/app/config/package.neon');
+				$tempDir = dirname(__DIR__, 4) . '/temp';
+				if (is_dir($tempDir)) {
+					foreach (new \FilesystemIterator($tempDir) as $item) {
+						FileSystem::delete(is_string($item) ? $item : (string) $item->getPathname());
 					}
 				}
-				ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
-			} else {
-				ConsoleHelpers::terminalRenderError('Can not load autoload files.');
+			} catch (\Throwable $e) {
+				trigger_error($e->getMessage());
+			}
+
+			echo 'Init Composer autoload' . "\n" . '======================' . "\n";
+			try {
+				$composerFileAutoloadPath = __DIR__ . '/../../../composer/autoload_files.php';
+				if (is_file($composerFileAutoloadPath)) {
+					foreach (require $composerFileAutoloadPath as $file) {
+						if (str_contains((string) file_get_contents($file), '--package-registrator-task--')) {
+							require_once $file;
+						}
+					}
+					ConsoleHelpers::terminalRenderSuccess('[OK] Successfully loaded.');
+				} else {
+					ConsoleHelpers::terminalRenderError('Can not load autoload files.');
+				}
+			} catch (\Throwable $e) {
+				ConsoleHelpers::terminalRenderError($e->getMessage());
+				ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
+				Debugger::log($e, 'critical');
+				echo 'Error was logged to file.' . "\n\n";
 			}
 		} catch (\Throwable $e) {
-			ConsoleHelpers::terminalRenderError($e->getMessage());
-			ConsoleHelpers::terminalRenderCode($e->getFile(), $e->getLine());
-			Debugger::log($e, 'critical');
-			echo 'Error was logged to file.' . "\n\n";
+			Lock::stopTransaction(self::MAINTENANCE_LOCK);
+			Debugger::log($e, ILogger::CRITICAL);
 		}
+		Terminator::addHandler(self::get());
 
 		try {
-			FileSystem::delete(dirname(__DIR__, 4) . '/temp/cache/baraja/packageDescriptor');
 			(new InteractiveComposer)->run(TaskManager::get());
 		} catch (\Throwable $e) {
 			ConsoleHelpers::terminalRenderError($e->getMessage());
