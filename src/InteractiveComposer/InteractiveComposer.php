@@ -25,7 +25,7 @@ final class InteractiveComposer
 			echo ConsoleHelpers::terminalRenderLabel(str_repeat('-', 3 + mb_strlen($task->getTask()->getName(), 'UTF-8') + strlen((string) $task->getPriority()))) . "\n\n";
 
 			try {
-				(static function(ITask $task, string $className): void {
+				(static function (ITask $task, string $className): void {
 					if ($task->run() === true) {
 						echo "\n\n\e[0;32;40m" . '[OK] Task was successful.' . "\e[0m\n\n";
 					} else {
