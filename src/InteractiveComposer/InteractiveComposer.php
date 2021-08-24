@@ -6,6 +6,7 @@ namespace Baraja\PackageManager;
 
 
 use Baraja\Console\Helpers as ConsoleHelpers;
+use Baraja\PackageManager\Composer\ITask;
 use Baraja\PackageManager\Composer\TaskManager;
 use Tracy\Debugger;
 
@@ -24,14 +25,16 @@ final class InteractiveComposer
 			echo ConsoleHelpers::terminalRenderLabel(str_repeat('-', 3 + mb_strlen($task->getTask()->getName(), 'UTF-8') + strlen((string) $task->getPriority()))) . "\n\n";
 
 			try {
-				if ($task->getTask()->run() === true) {
-					echo "\n\n\e[0;32;40m" . '[OK] Task was successful.' . "\e[0m\n\n";
-				} else {
-					echo "\n\n";
-					ConsoleHelpers::terminalRenderError('Task "' . $task->getClassName() . '" failed!');
-					echo "\n\n";
-					die;
-				}
+				(static function(ITask $task, string $className): void {
+					if ($task->run() === true) {
+						echo "\n\n\e[0;32;40m" . '[OK] Task was successful.' . "\e[0m\n\n";
+					} else {
+						echo "\n\n";
+						ConsoleHelpers::terminalRenderError('Task "' . $className . '" failed!');
+						echo "\n\n";
+						die;
+					}
+				})($task->getTask(), $task->getClassName());
 			} catch (\RuntimeException $e) {
 				echo "\n\n";
 				ConsoleHelpers::terminalRenderError('Task "' . $task->getClassName() . '" failed!' . "\n\n" . $e->getMessage());
