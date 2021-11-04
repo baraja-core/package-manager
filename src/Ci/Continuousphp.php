@@ -45,9 +45,7 @@ class Continuousphp extends AbstractCi
 
 	public function getGitBranch(): string
 	{
-		$gitReference = $this->env->getString('CPHP_GIT_REF');
-
-		return (string) preg_replace('~^refs/heads/~', '', $gitReference) ?? '';
+		return (string) preg_replace('~^refs/heads/~', '', $this->env->getString('CPHP_GIT_REF'));
 	}
 
 

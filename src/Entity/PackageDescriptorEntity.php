@@ -17,7 +17,14 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 	/** @var \stdClass[] */
 	protected array $composer;
 
-	/** @var mixed[] */
+	/** @var array<int, array{
+	 *     name: string,
+	 *     version: string|null,
+	 *     dependency: string,
+	 *     config: array<string, array{data: array<string, mixed>|string, rewrite: bool}>,
+	 *     composer: array{name: string|null, description: string|null}|null
+	 * }>
+	 */
 	protected array $packagest = [];
 
 
@@ -69,14 +76,14 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 		$return = [];
 		foreach ($this->packagest as $package) {
 			if ($package['composer'] === null) {
-				PackageDescriptorCompileException::composerJsonIsBroken($package['name']);
+				throw PackageDescriptorCompileException::composerJsonIsBroken($package['name']);
 			}
 
 			$return[] = new Package(
 				$package['name'],
 				$package['version'],
 				$package['dependency'],
-				$package['config'] ?? [],
+				$package['config'],
 				$package['composer'],
 			);
 		}
@@ -86,28 +93,33 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 
 
 	/**
-	 * @param mixed[] $packagest
+	 * @param array<int, array{
+	 *     name: string,
+	 *     version: string|null,
+	 *     dependency: string,
+	 *     config: array<string, array{data: array<string, mixed>|string, rewrite: bool}>|null,
+	 *     composer: array{name?: string, description?: string}|null
+	 * }> $packagest
 	 */
 	public function setPackages(array $packagest): void
 	{
 		$this->checkIfClose();
 
 		$return = [];
-
 		foreach ($packagest as $package) {
-			$composer = [];
-			if (isset($package['composer']) === true) {
+			$composer = null;
+			if (isset($package['composer']['name'], $package['composer']['description']) === true) {
 				$composer = [
-					'name' => $package['composer']['name'] ?? null,
-					'description' => $package['composer']['description'] ?? null,
+					'name' => $package['composer']['name'],
+					'description' => $package['composer']['description'],
 				];
 			}
 
 			$return[] = [
-				'name' => $package['name'] ?? null,
+				'name' => $package['name'],
 				'version' => $package['version'] ?? null,
-				'dependency' => $package['dependency'] ?? null,
-				'config' => $package['config'] ?? null,
+				'dependency' => $package['dependency'],
+				'config' => $package['config'] ?? [],
 				'composer' => $composer,
 			];
 		}

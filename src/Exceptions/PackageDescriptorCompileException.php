@@ -7,11 +7,8 @@ namespace Baraja\PackageManager\Exception;
 
 final class PackageDescriptorCompileException extends PackageDescriptorException
 {
-	/**
-	 * @throws PackageDescriptorCompileException
-	 */
-	public static function composerJsonIsBroken(string $packageName): void
+	public static function composerJsonIsBroken(string $packageName): self
 	{
-		throw new self('File "composer.json" in package "' . $packageName . '" does not exist.');
+		return new self('File "composer.json" in package "' . $packageName . '" does not exist.');
 	}
 }

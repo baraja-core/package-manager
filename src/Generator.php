@@ -32,12 +32,13 @@ final class Generator
 		}
 
 		$composerJson = Helpers::haystackToArray(
-			json_decode((string) file_get_contents($path)),
+			json_decode((string) file_get_contents($path), true, 512, JSON_THROW_ON_ERROR),
 		);
-		if ($composerJson === [] || $composerJson === '') {
-			throw new \RuntimeException(
-				'File "composer.json" can not be empty. Did you check path "' . $path . '"?',
-			);
+		if (is_array($composerJson) === false) {
+			throw new \LogicException(sprintf('File "composer.json" should be array, but "%s" parsed.', get_debug_type($composerJson)));
+		}
+		if ($composerJson === []) {
+			throw new \RuntimeException(sprintf('File "composer.json" can not be empty. Did you check path "%s"?', $path));
 		}
 
 		$packageDescriptor->setComposer($composerJson);
@@ -48,8 +49,14 @@ final class Generator
 
 
 	/**
-	 * @param string[][] $composer
-	 * @return mixed[]
+	 * @param array{require?: array<string, mixed>} $composer
+	 * @return array<int, array{
+	 *     name: string,
+	 *     version: string|null,
+	 *     dependency: string,
+	 *     config: array<string, array{data: array<string, mixed>|string, rewrite: bool}>|null,
+	 *     composer: array{name?: string, description?: string}|null
+	 * }>
 	 * @throws PackageDescriptorException
 	 */
 	private function getPackages(array $composer): array
@@ -86,8 +93,8 @@ final class Generator
 
 		$return = [];
 		foreach ($packageDirs as $name => $dependency) {
-			if (!preg_match('/^(php|ext-\w+|[a-z0-9-_]+\/[a-z0-9-_]+)$/', $name)) {
-				trigger_error('Composer 2.0 compatibility: Package name "' . $name . '" is invalid, it must contain only lower english characters.');
+			if (preg_match('/^(php|ext-\w+|[a-z0-9-_]+\/[a-z0-9-_]+)$/', $name) !== 1) {
+				trigger_error(sprintf('Composer 2.0 compatibility: Package name "%s" is invalid, it must contain only lower english characters.', $name));
 			}
 			$name = mb_strtolower($name, 'UTF-8');
 			$path = $this->projectRoot . '/vendor/' . $name;
@@ -107,18 +114,25 @@ final class Generator
 				$configPath = $path . '/config.neon';
 			}
 			$composerPath = $path . '/composer.json';
-			if (is_file($composerPath) && json_decode((string) file_get_contents($composerPath)) === null) {
-				PackageDescriptorCompileException::composerJsonIsBroken($name);
+			 $composerContentArray = null;
+			if (is_file($composerPath)) {
+				$composerContent = json_decode((string) file_get_contents($composerPath), flags: JSON_THROW_ON_ERROR);
+				if ($composerContent === null) {
+					throw PackageDescriptorCompileException::composerJsonIsBroken($name);
+				}
+				/** @var array{name?: string, description?: string} $composerContentArray */
+				$composerContentArray = Helpers::haystackToArray($composerContent);
+			} else {
+				throw new \LogicException(sprintf('File "composer.json" does not exist on path "%s".', $composerPath));
 			}
 
+			assert(is_string($dependency));
 			$return[] = [
 				'name' => $name,
 				'version' => $packagesVersions[$name] ?? null,
 				'dependency' => $dependency,
 				'config' => $configPath !== null ? $this->formatConfigSections($configPath) : null,
-				'composer' => is_file($composerPath)
-					? Helpers::haystackToArray(json_decode((string) file_get_contents($composerPath)))
-					: null,
+				'composer' => $composerContentArray,
 			];
 		}
 
@@ -127,24 +141,29 @@ final class Generator
 
 
 	/**
-	 * @return string[]|string[][]|mixed[][]
+	 * @return array<string, array{data: array<string, mixed>|string, rewrite: bool}>
 	 */
 	private function formatConfigSections(string $path): array
 	{
+		$neon = Neon::decode((string) file_get_contents($path));
+		$neonArray = is_array($neon) ? $neon : [];
 		$return = [];
-		foreach (\is_array($neon = Neon::decode((string) file_get_contents($path))) ? $neon : [] as $part => $haystack) {
+		foreach ($neonArray as $part => $haystack) {
+			if (is_array($haystack) === false) {
+				throw new \LogicException(sprintf('Service haystack should be iterable, but "%s" given.', get_debug_type($haystack)));
+			}
 			if ($part === 'services') {
 				$servicesList = '';
 				foreach ($haystack as $key => $serviceClass) {
-					$servicesList .= (\is_int($key) ? '- ' : $key . ': ') . Neon::encode($serviceClass) . "\n";
+					$servicesList .= (is_int($key) ? '- ' : $key . ': ') . Neon::encode($serviceClass) . "\n";
 				}
 
-				$return[$part] = [
+				$return['services'] = [
 					'data' => $servicesList,
 					'rewrite' => false,
 				];
 			} else {
-				$return[$part] = [
+				$return[(string) $part] = [
 					'data' => $haystack,
 					'rewrite' => true,
 				];
@@ -156,13 +175,14 @@ final class Generator
 
 
 	/**
-	 * @return string[]
+	 * @return array<string, string>
 	 */
 	private function getPackagesVersions(): array
 	{
 		$return = [];
 		$packages = [];
 		if (class_exists(ClassLoader::class, false)) {
+			$lockFile = null;
 			try {
 				$classLoader = (new \ReflectionClass(ClassLoader::class))->getFileName();
 				if ($classLoader === false) {
@@ -173,20 +193,24 @@ final class Generator
 				}
 				$lockFile = \dirname($classLoader) . '/../../composer.lock';
 			} catch (\ReflectionException) {
-				$lockFile = null;
+				// silence is golden.
 			}
-			if ($lockFile !== null && is_file($lockFile) === false) {
+			if ($lockFile === null) {
+				throw new \LogicException('File "composer.lock" does not exist or not been detected.');
+			}
+			if (is_file($lockFile) === false) {
 				throw new \RuntimeException('Can not load "composer.lock", because path "' . $lockFile . '" does not exist.');
 			}
 
-			$composer = @json_decode((string) file_get_contents((string) $lockFile)); // @ may not exist or be valid
-			$packages = (array) @$composer->packages;
-			usort($packages, static fn($a, $b) => strcmp($a->name, $b->name));
+			/** @var array{packages?: array<int, array{name: string, version: string, source: array{reference: string}}>} $composer */
+			$composer = @json_decode((string) file_get_contents($lockFile), true, 512, JSON_THROW_ON_ERROR); // @ may not exist or be valid
+			$packages = $composer['packages'] ?? [];
+			usort($packages, static fn(array $a, array $b): int => strcmp($a['name'], $b['name']));
 		}
 
 		foreach ($packages as $package) {
-			$return[$package->name] = $package->version
-				. (!str_contains($package->version, 'dev') ? '' : ' #' . substr($package->source->reference, 0, 4));
+			$return[$package['name']] = $package['version']
+				. (!str_contains($package['version'], 'dev') ? '' : ' #' . substr($package['source']['reference'], 0, 4));
 		}
 
 		return $return;

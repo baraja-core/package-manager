@@ -7,16 +7,16 @@ namespace Baraja\PackageManager;
 
 final class Package
 {
-	/** @var string[][]|mixed[][][] */
+	/** @var array<string, array{data: array<string, mixed>|string, rewrite: bool}> */
 	private array $config;
 
-	/** @var mixed[] */
+	/** @var array{name: string|null, description: string|null} */
 	private array $composer;
 
 
 	/**
-	 * @param string[][]|mixed[][][] $config
-	 * @param mixed[] $composer
+	 * @param array<string, array{data: array<string, mixed>|string, rewrite: bool}> $config
+	 * @param array{name: string|null, description: string|null} $composer
 	 */
 	public function __construct(
 		private string $name,
@@ -49,7 +49,7 @@ final class Package
 
 
 	/**
-	 * @return string[][]|bool[][]|mixed[][][]
+	 * @return array<string, array{data: array<string, mixed>|string, rewrite: bool}>
 	 */
 	public function getConfig(): array
 	{
@@ -58,7 +58,7 @@ final class Package
 
 
 	/**
-	 * @return mixed[]
+	 * @return array{name: string|null, description: string|null}
 	 */
 	public function getComposer(): array
 	{

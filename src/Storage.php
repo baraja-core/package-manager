@@ -85,7 +85,7 @@ final class Storage
 		foreach ($descriptor->getPackagest() as $package) {
 			foreach ($package->getConfig() as $param => $value) {
 				if ($param === 'extensions') {
-					foreach ((array) ($value['data'] ?? []) as $extensionName => $extensionType) {
+					foreach ((array) $value['data'] as $extensionName => $extensionType) {
 						$extensions[(string) $extensionName] = $extensionType;
 					}
 				} elseif ($param !== 'includes') {
@@ -107,10 +107,13 @@ final class Storage
 			$return .= "\n" . $neonKey . ':' . "\n\t";
 			$tree = [];
 			foreach ($packageInfos as $packageInfo) {
+				/** @phpstan-ignore-next-line */
 				$packageData = $packageInfo['data']['data'] ?? $packageInfo['data'];
+				/** @var array<string|int, mixed> $neonData */
 				$neonData = \is_array($packageData)
 					? $packageData
 					: Neon::decode((string) $packageData);
+				assert(is_iterable($neonData));
 				foreach ($neonData as $treeKey => $treeValue) {
 					if (is_int($treeKey) || (is_string($treeKey) && preg_match('/^-?\d+\z/', $treeKey))) {
 						unset($neonData[$treeKey]);
@@ -289,7 +292,7 @@ final class Storage
 				throw new \RuntimeException(
 					'Can not create PackageDescriptionEntity file: ' . $e->getMessage() . "\n"
 					. 'Package Manager tried to create a directory "' . $dir . '" and a file "' . $entityFilePath . '" inside.',
-					$e->getCode(),
+					500,
 					$e,
 				);
 			}

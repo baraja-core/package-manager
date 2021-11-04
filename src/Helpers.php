@@ -67,11 +67,7 @@ final class Helpers
 	public static function haystackToArray(mixed $input): mixed
 	{
 		if (\is_object($input)) {
-			try {
-				$reflection = new \ReflectionClass($input);
-			} catch (\ReflectionException) {
-				return null;
-			}
+			$reflection = new \ReflectionClass($input);
 
 			$return = [];
 			if ($input instanceof \stdClass) {

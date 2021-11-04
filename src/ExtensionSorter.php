@@ -40,10 +40,13 @@ final class ExtensionSorter
 				);
 			}
 
+			/** @var array{value?: string, attributes?: array<int, string>}|string $typedDefinition */
+			$typedDefinition = $definition;
+
 			$items[] = [
 				'key' => $key,
 				'type' => $type,
-				'definition' => $definition,
+				'definition' => $typedDefinition,
 				'mustBeDefinedBefore' => self::invokeStaticMethodSafe($type, 'mustBeDefinedBefore'),
 				'mustBeDefinedAfter' => self::invokeStaticMethodSafe($type, 'mustBeDefinedAfter'),
 			];
@@ -59,7 +62,7 @@ final class ExtensionSorter
 
 
 	/**
-	 * @return string[]|null
+	 * @return array<int, string>|null
 	 */
 	private static function invokeStaticMethodSafe(string $class, string $method): ?array
 	{
@@ -85,8 +88,8 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param mixed[][] $candidates
-	 * @return mixed[][]
+	 * @param array<int, array{type: class-string, key: string, definition: string|array{value?: string, attributes?: array<int, string>}}> $candidates
+	 * @return array<int, array{type: class-string, key: string, definition: string|array{value?: string, attributes?: array<int, string>}}>
 	 */
 	private static function sortCandidatesByConditions(array $candidates): array
 	{
@@ -100,7 +103,7 @@ final class ExtensionSorter
 			}
 			$candidate = $candidates[$candidateKey] ?? null;
 			if ($candidate === null) {
-				throw new \RuntimeException('Candidate key "' . $candidateKey . '" is broken.');
+				throw new \RuntimeException(sprintf('Candidate key "%s" is broken.', $candidateKey));
 			}
 
 			$position = null;
@@ -113,7 +116,7 @@ final class ExtensionSorter
 							$position = $returnPosition;
 							break;
 						}
-					} catch (\InvalidArgumentException) { // move candidate item to end of candidatest list
+					} catch (\InvalidArgumentException) { // move candidate item to end of candidates list
 						if (isset($castlingTtl[$candidate['type']]) === false) {
 							$castlingTtl[$candidate['type']] = 0;
 						}
@@ -143,7 +146,7 @@ final class ExtensionSorter
 				throw new \RuntimeException(
 					'Internal conflict in dependencies: Item "' . $candidate['type'] . '" requires conditions that conflict with another extension.' . "\n"
 					. 'To solve this issue: Please check your items configuration and use tree dependencies only.' . "\n"
-					. 'Sucessfully registered extensions: "' . implode('", "', $registered) . '".',
+					. 'Successfully registered extensions: "' . implode('", "', $registered) . '".',
 				);
 			}
 		}
@@ -153,34 +156,34 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param mixed[] $item
-	 * @param mixed[][] $items
-	 * @param string[] $registered
+	 * @param array{mustBeDefinedBefore?: array<int, class-string>, mustBeDefinedAfter?: array<int, class-string>} $item
+	 * @param array<int, array{type: class-string}> $items
+	 * @param array<int, string> $registered
 	 */
 	private static function canBeItemAddedHere(array $item, int $position, array $items, array $registered): bool
 	{
-		$before = $item['mustBeDefinedBefore'] ?? null;
-		$after = $item['mustBeDefinedAfter'] ?? null;
-		if ($before === null && $after === null) {
+		$before = $item['mustBeDefinedBefore'] ?? [];
+		$after = $item['mustBeDefinedAfter'] ?? [];
+		if ($before === [] && $after === []) {
 			return true;
 		}
-		foreach (\array_merge($before ?? [], $after ?? []) as $dependency) { // contains all dependencies?
+		foreach (\array_merge($before, $after) as $dependency) { // contains all dependencies?
 			if (\in_array($dependency, $registered, true) === false) {
-				throw new \InvalidArgumentException('Dependency "' . $dependency . '" is not available now, skipped.');
+				throw new \InvalidArgumentException(sprintf('Dependency "%s" is not available now, skipped.', $dependency));
 			}
 		}
-		if ($position === 0 && $before !== null) {
+		if ($position === 0 && $before !== []) {
 			return false;
 		}
-		if ($before !== null) { // all numbers must be bigger than $position
-			foreach (self::getDependencyPositions($before ?? [], $items) as $dependencyBefore) {
+		if ($before !== []) { // all numbers must be bigger than $position
+			foreach (self::getDependencyPositions($before, $items) as $dependencyBefore) {
 				if ($dependencyBefore > $position) {
 					return false;
 				}
 			}
 		}
-		if ($after !== null) {
-			foreach (self::getDependencyPositions($after ?? [], $items) as $dependencyBefore) {
+		if ($after !== []) {
+			foreach (self::getDependencyPositions($after, $items) as $dependencyBefore) {
 				if ($dependencyBefore < $position) {
 					return false;
 				}
@@ -192,22 +195,22 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param mixed[][] $finalArray
-	 * @param mixed[] $inserted
-	 * @return mixed[][]
+	 * @param array<int, array{type: class-string, key: string, definition: string|array{value?: string, attributes?: array<int, string>}}> $finalArray
+	 * @param array{type: class-string, key: string, definition: string|array{value?: string, attributes?: array<int, string>}} $inserted
+	 * @return array<int, array{type: class-string, key: string, definition: string|array{value?: string, attributes?: array<int, string>}}>
 	 */
 	private static function insertBefore(array $finalArray, int $key, array $inserted): array
 	{
-		$wasInserted = false;
+		$hasInserted = false;
 		$return = [];
 		foreach ($finalArray as $finalKey => $finalValue) {
 			if ($finalKey === $key) {
 				$return[] = $inserted;
-				$wasInserted = true;
+				$hasInserted = true;
 			}
 			$return[] = $finalValue;
 		}
-		if ($wasInserted === false) {
+		if ($hasInserted === false) {
 			$return[] = $inserted;
 		}
 
@@ -216,9 +219,9 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string[] $dependencies
-	 * @param mixed[][] $items
-	 * @return int[]
+	 * @param array<int, string> $dependencies
+	 * @param array<int, array{type: class-string}> $items
+	 * @return array<int, int>
 	 */
 	private static function getDependencyPositions(array $dependencies, array $items): array
 	{
@@ -234,14 +237,13 @@ final class ExtensionSorter
 
 
 	/**
-	 * @param string|array<string, \stdClass|mixed> $definition
+	 * @param string|array{value?: string, attributes?: array<int, string>} $definition
 	 */
-	private static function encodeExtensionDefinition($definition): string
+	private static function encodeExtensionDefinition(string|array $definition): string
 	{
-		if (\is_string($definition)) {
+		if (is_string($definition)) {
 			return $definition;
 		}
-		$definition = (array) $definition;
 		if (isset($definition['value'], $definition['attributes'])) {
 			return $definition['value'] . '(' . implode(', ', $definition['attributes']) . ')';
 		}

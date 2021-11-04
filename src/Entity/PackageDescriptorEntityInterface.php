@@ -12,7 +12,7 @@ interface PackageDescriptorEntityInterface
 	public function getComposerHash(): string;
 
 	/**
-	 * @return Package[]
+	 * @return array<int, Package>
 	 * @throws PackageDescriptorCompileException
 	 */
 	public function getPackagest(): array;
