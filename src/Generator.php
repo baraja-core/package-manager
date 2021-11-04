@@ -114,7 +114,7 @@ final class Generator
 				$configPath = $path . '/config.neon';
 			}
 			$composerPath = $path . '/composer.json';
-			 $composerContentArray = null;
+			$composerContentArray = null;
 			if (is_file($composerPath)) {
 				$composerContent = json_decode((string) file_get_contents($composerPath), flags: JSON_THROW_ON_ERROR);
 				if ($composerContent === null) {
