@@ -182,6 +182,7 @@ class PackageRegistrator implements TerminatorHandler
 					}
 				}
 			} catch (\Throwable $e) {
+				self::get();
 				trigger_error($e->getMessage());
 			}
 
