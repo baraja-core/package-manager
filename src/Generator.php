@@ -93,6 +93,9 @@ final class Generator
 
 		$return = [];
 		foreach ($packageDirs as $name => $dependency) {
+			if (str_starts_with($name, 'composer/')) {
+				continue;
+			}
 			if (preg_match('/^(php|ext-\w+|[a-z0-9-_]+\/[a-z0-9-_]+)$/', $name) !== 1) {
 				trigger_error(sprintf('Composer 2.0 compatibility: Package name "%s" is invalid, it must contain only lower english characters.', $name));
 			}
