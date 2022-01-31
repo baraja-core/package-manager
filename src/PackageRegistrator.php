@@ -174,7 +174,9 @@ class PackageRegistrator implements TerminatorHandler
 				$tempDir = dirname(__DIR__, 4) . '/temp';
 				if (is_dir($tempDir)) {
 					foreach (new \FilesystemIterator($tempDir) as $item) {
-						FileSystem::delete(is_string($item) ? $item : (string) $item->getPathname());
+						$path = is_string($item) ? $item : (string) $item->getPathname();
+						FileSystem::makeWritable($path);
+						FileSystem::delete($path);
 					}
 				}
 			} catch (\Throwable $e) {
