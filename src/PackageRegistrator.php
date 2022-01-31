@@ -79,6 +79,8 @@ class PackageRegistrator implements TerminatorHandler
 			Debugger::log($e, 'critical');
 			if (PHP_SAPI === 'cli') {
 				ConsoleHelpers::terminalRenderError($e->getMessage());
+			} else {
+				throw new \RuntimeException(sprintf('Can not load PackageDescriptor: %s', $e->getMessage()), 500, $e);
 			}
 		}
 	}
