@@ -21,7 +21,14 @@ final class ClearCacheTask extends BaseTask
 
 		$tempPath = \dirname(__DIR__, 6) . '/temp';
 		echo 'Path: ' . $tempPath;
+		try {
+			FileSystem::makeWritable($tempPath);
+		} catch (\Throwable) {
+			// Silence is golden.
+		}
 		FileSystem::delete($tempPath);
+		FileSystem::createDir($tempPath);
+		FileSystem::makeWritable($tempPath);
 
 		return true;
 	}
