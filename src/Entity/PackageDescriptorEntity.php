@@ -68,15 +68,14 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 
 
 	/**
-	 * @return Package[]
-	 * @throws PackageDescriptorCompileException
+	 * @return array<int, Package>
 	 */
 	public function getPackagest(): array
 	{
 		$return = [];
 		foreach ($this->packagest as $package) {
 			if ($package['composer'] === null) {
-				throw PackageDescriptorCompileException::composerJsonIsBroken($package['name']);
+				$package['composer'] = ['name' => $package, 'description' => ''];
 			}
 
 			$return[] = new Package(
