@@ -10,7 +10,7 @@ use Nette\DI\CompilerExtension;
 abstract class SmartCompilerExtension extends CompilerExtension
 {
 	/**
-	 * @return string[]
+	 * @return array<int, string>
 	 */
 	public static function mustBeDefinedBefore(): array
 	{
@@ -19,7 +19,7 @@ abstract class SmartCompilerExtension extends CompilerExtension
 
 
 	/**
-	 * @return string[]
+	 * @return array<int, string>
 	 */
 	public static function mustBeDefinedAfter(): array
 	{
