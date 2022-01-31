@@ -26,7 +26,7 @@ final class Storage
 		private string $basePath,
 		private string $configPackagePath,
 		private string $configLocalPath,
-		string $projectRoot
+		string $projectRoot,
 	) {
 		$this->composerHash = @md5_file($projectRoot . '/vendor/composer/installed.json') ?: md5((string) time());
 		$this->generator = new Generator($projectRoot);
@@ -167,7 +167,7 @@ final class Storage
 					}
 
 					return $a === $b ? 0 : 1;
-				}
+				},
 			);
 
 			if ($treeOthers !== []) {
@@ -184,7 +184,7 @@ final class Storage
 
 		FileSystem::write(
 			$this->configPackagePath,
-			trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n"
+			trim((string) preg_replace('/(\s)\[]-(\s)/', '$1-$2', $return)) . "\n",
 		);
 	}
 
@@ -213,7 +213,7 @@ final class Storage
 				. "\n\n" . 'if ($cache === null) {'
 				. "\n\t" . '$cache = (int) strtotime($this->getGeneratedDateTime());'
 				. "\n" . '}'
-				. "\n\n" . 'return $cache;'
+				. "\n\n" . 'return $cache;',
 			);
 
 		$class->addMethod('getComposerHash')
@@ -240,8 +240,8 @@ final class Storage
 
 							return null;
 						})(
-							$property->getType()
-						)
+							$property->getType(),
+						),
 					);
 			}
 		}

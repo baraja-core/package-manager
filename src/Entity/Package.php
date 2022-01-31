@@ -23,7 +23,7 @@ final class Package
 		private ?string $version,
 		private string $dependency,
 		array $config,
-		array $composer
+		array $composer,
 	) {
 		$this->config = $config;
 		$this->composer = $composer;

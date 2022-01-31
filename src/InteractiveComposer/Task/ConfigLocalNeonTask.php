@@ -125,7 +125,7 @@ final class ConfigLocalNeonTask extends BaseTask
 						'connection' => $haystack,
 					],
 				],
-				Neon::BLOCK
+				Neon::BLOCK,
 			)) . "\n";
 		}
 
