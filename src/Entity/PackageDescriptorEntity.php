@@ -74,16 +74,12 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 	{
 		$return = [];
 		foreach ($this->packagest as $package) {
-			if ($package['composer'] === null) {
-				$package['composer'] = ['name' => $package, 'description' => ''];
-			}
-
 			$return[] = new Package(
 				$package['name'],
 				$package['version'],
 				$package['dependency'],
 				$package['config'],
-				$package['composer'],
+				$package['composer'] ?? ['name' => $package, 'description' => null],
 			);
 		}
 
