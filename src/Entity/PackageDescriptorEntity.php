@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Baraja\PackageManager;
 
 
-use Baraja\PackageManager\Exception\PackageDescriptorCompileException;
-
 /**
  * @internal
  */
@@ -79,7 +77,7 @@ class PackageDescriptorEntity implements PackageDescriptorEntityInterface
 				$package['version'],
 				$package['dependency'],
 				$package['config'],
-				$package['composer'] ?? ['name' => $package, 'description' => null],
+				$package['composer'] ?? ['name' => $package['name'], 'description' => null],
 			);
 		}
 
