@@ -54,7 +54,7 @@ class PackageRegistrator implements TerminatorHandler
 				$tempDir = (new TempDirResolver($rootDirResolver))->get();
 			}
 		}
-		if (Debugger::$logDirectory === null) {
+		if (class_exists(Debugger::class) === true && Debugger::$logDirectory === null) {
 			FileSystem::createDir($rootDir . '/log');
 			try {
 				Debugger::enable(false, $rootDir . '/log');
@@ -76,7 +76,9 @@ class PackageRegistrator implements TerminatorHandler
 		try {
 			self::$packageDescriptorEntity = $storage->load();
 		} catch (PackageDescriptorException $e) {
-			Debugger::log($e, 'critical');
+			if (class_exists(Debugger::class) === true) {
+				Debugger::log($e, 'critical');
+			}
 			if (PHP_SAPI === 'cli') {
 				ConsoleHelpers::terminalRenderError($e->getMessage());
 			} else {
